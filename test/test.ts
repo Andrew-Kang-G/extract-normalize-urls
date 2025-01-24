@@ -1,4 +1,4 @@
-import Pattern from '../src/controller'
+import Pattern from "../src/entry";
 const assert = require('assert');
 /*function test(title, testCode) {
     try {
@@ -19,7 +19,7 @@ function expect(result) {
 }
 
 /*test('', function() {
-    expect(Pattern.UrlArea.normalizeUrl("htp/:/abcgermany.,def;:9094 #park//noon??abc=retry")["normalizedUrl"])
+    expect(UrlArea.normalizeUrl("htp/:/abcgermany.,def;:9094 #park//noon??abc=retry")["normalizedUrl"])
         .toBe("http://abcgermany.de:9094#park/noon?abc=retry")
     ;
 
@@ -34,21 +34,14 @@ describe('BDD style', function() {
         // excuted after test suite
     });
 
-    beforeEach(function() {
-        // excuted before every test
-    });
-
-    afterEach(function() {
-        // excuted after every test
-    });
 
     describe('UrlArea', function() {
         it('normalizeUrl', function() {
-            expect(Pattern.UrlArea.normalizeUrl("htp/:/abcgermany.,def;:9094 #park//noon??abc=retry")["normalizedUrl"])
+            expect(Pattern.UrlArea.normalizeUrl("htp/:/abcgermany.,def;:9094 #park//noon??abc=retry").normalizedUrl)
                 .toBe("http://abcgermany.de:9094#park/noon?abc=retry");
         });
         it('parseUrl', function() {
-            expect(Pattern.UrlArea.parseUrl("xtp://gooppalgo.com/park/tree/?abc=1")["onlyUriWithParams"])
+            expect(Pattern.UrlArea.parseUrl("xtp://gooppalgo.com/park/tree/?abc=1").onlyUriWithParams)
                 .toBe("/park/tree/?abc=1");
         });
     });
@@ -672,14 +665,13 @@ describe('BDD style', function() {
                 {
                     "value": {
                         "email": "adssd@asdasd.ac.jp",
-                        "removedTailOnEmail": null,
+                        "removedTailOnEmail": "...",
                         "type": "domain",
-                        "removedTailOnUrl": "..."
                     },
                     "area": "text",
                     "index": {
                         "start": 242,
-                        "end": 263
+                        "end": 260
                     },
                     "pass": true
                 },

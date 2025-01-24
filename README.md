@@ -2,6 +2,8 @@
 ## Overview
 Extract and decompose (fuzzy) URLs (including emails, which are conceptually a part of URLs) in texts with robust patterns.
 
+- This library is currently being refactored into TypeScript, as it was originally developed in JavaScript. 
+
 #### URL knife
 <a href="https://jsfiddle.net/AndrewKang/xtfjn8g3/" target="_blank">LIVE DEMO</a>
 
@@ -13,8 +15,10 @@ For ES5 users,
 ``` html
 <html>
        <body>
-       	<p id="content"></p>
        	<script src="../dist/url-knife.bundle.js"></script>
+        <--! OR !-->
+       	<script src="https://cdn.jsdelivr.net/gh/patternknife/url-knife@3.2.1/dist/url-knife.bundle.min.js"></script>
+       	
        	<script type="text/javascript">
        	</script>
        </body>
@@ -22,7 +26,7 @@ For ES5 users,
 ```
 
 For ES6 npm users, run 'npm install --save url-knife' on console.
-(Node v18.20.4)
+(**Requred Node v18.20.4**)
 
 ``` html
 import Pattern from 'url-knife';
@@ -39,14 +43,13 @@ import Pattern from 'url-knife';
 
 
 #### Chapter 1. Normalize or parse one URL
-The following two methods should be used for only one url, not for multiple ones in texts. 
-(for multiple ones, refer to Chapter 2 & 4)
+The following two methods should be used for processing a single URL, not for multiple URLs within a text.
+(For handling multiple URLs, refer to Chapters 2 and 4.)
 
 ##### normalizeUrl vs parseUrl
-If you want to parse a normal url with no typos, it is safe to use <b>parseUrl</b>. However, <b>normalizeUrl</b> is for
-parsing urls with possible human errors.
+If you need to parse a standard URL without any typos, it is safe to use ``parseUrl``. However, ``normalizeUrl`` is designed to handle URLs that may contain human errors.
 
-* ##### normalizeUrl
+* ##### Run ``normalizeUrl``
   
 ``` javascript
 /**
@@ -58,7 +61,7 @@ var sample2 = Pattern.UrlArea.normalizeUrl("'://abc.jppp:9091 /park/noon'")
 var sample3 = Pattern.UrlArea.normalizeUrl("ss hd : /university,.acd. ;jpkp: 9091/adc??abc=.com")
 
  ```
- ###### console.log() 
+* ##### Results
  ``` javascript
 {
   "url": "htp/:/abcgermany.,def;:9094 #park//noon??abc=retry",
@@ -103,7 +106,7 @@ var sample3 = Pattern.UrlArea.normalizeUrl("ss hd : /university,.acd. ;jpkp: 909
 }
  ``` 
 
-* ##### parseUrl
+* ##### Run ``parseUrl``
 
 ``` javascript
 /**
@@ -512,5 +515,3 @@ var urls = PatternExtractor.XmlArea.extractAllUrls(xmlStr);
     .....
  ]
 ```
-
-Please inform me of more sophisticated patterns you need by leaving issues or emailing me at studypurpose@naver.com.

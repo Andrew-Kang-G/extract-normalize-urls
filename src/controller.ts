@@ -1,5 +1,11 @@
-import Pattern from './pattern';
 import Service from './service';
+import {NoProtocolJsnType} from "./types";
+import {OptionalUrlPatternBuilder} from "./pattern/OptionalUrlPatternBuilder";
+import {DomainPatterns} from "./pattern/DomainPatterns";
+import {CommentPatterns} from "./pattern/CommentPatterns";
+import {EmailPatternBuilder} from "./pattern/EmailPatternBuilder";
+import {BasePatterns} from "./pattern/BasePatterns";
+
 
 /*
 *     All Public
@@ -10,7 +16,7 @@ const TextArea = {
 
     /**
      * @brief
-     * Distill all urls from normal text
+     * Distill all urls in texts
      * @author Andrew Kang
      * @param textStr string required
      * @param noProtocolJsn object
@@ -23,10 +29,18 @@ const TextArea = {
 
      * @return array
      */
-    extractAllUrls(textStr, noProtocolJsn) {
+    extractAllUrls(
+        textStr: string,
+        noProtocolJsn: NoProtocolJsnType = {
+            ip_v4: false,
+            ip_v6: false,
+            localhost: false,
+            intranet: false
+        }
+    ){
 
 
-        Pattern.Children.setUrlPattern(noProtocolJsn);
+        OptionalUrlPatternBuilder.setUrlPattern(noProtocolJsn);
 
         //console.log('a : ' + Pattern.Children.url);
 
@@ -43,7 +57,7 @@ const TextArea = {
      * @param prefixSanitizer boolean (default : true)
      * @return array
      */
-    extractAllEmails(textStr, prefixSanitizer) {
+    extractAllEmails(textStr: string, prefixSanitizer: boolean = true) {
 
         return Service.Text.extractAllPureEmails(textStr, prefixSanitizer);
 
@@ -51,6 +65,9 @@ const TextArea = {
 
 
     /**
+     *
+     * [!!Important] This functions well, but should be refactored every business logic is here.
+     *
      * @brief
      * Distill uris with certain names from normal text
      * @author Andrew Kang
@@ -61,7 +78,7 @@ const TextArea = {
      * @param endBoundary boolean (default : false)
      * @return array
      */
-    extractCertainUris(textStr, uris, endBoundary) {
+    extractCertainUris(textStr: string, uris: Array<string>, endBoundary: boolean = false) {
 
         if (!(textStr && typeof textStr === 'string')) {
             throw new Error('the variable textStr must be a string type and not be null.');
@@ -97,7 +114,7 @@ const TextArea = {
 
                     let sanitizedUrl = obj[a]['value']['url'];
 
-                    let rx = new RegExp('^(\\/\\/[^/]*|\\/[^\\n\\r\\t\\s]+\\.' + Pattern.Ancestors.all_root_domains + ')', 'gi');
+                    let rx = new RegExp('^(\\/\\/[^/]*|\\/[^\\s]+\\.' + DomainPatterns.allRootDomains + ')', 'gi');
                     let matches = [];
                     let match = {};
 
@@ -117,7 +134,7 @@ const TextArea = {
                     }
 
 
-                    obj_part['in_what_url'] = obj2[b];
+                    obj_part.in_what_url = obj2[b];
                     //matchedUrlFound = true;
 
                 }
@@ -125,7 +142,7 @@ const TextArea = {
 
             }
 
-            obj_part['uri_detected'] = obj[a];
+            obj_part.uri_detected = obj[a];
             obj_final.push(obj_part);
 
         }
@@ -147,7 +164,7 @@ const UrlArea = {
      * @param url string required
      * @return array ({'url' : '', 'protocol' : '', 'onlyDomain' : '', 'onlyUriWithParams' : '', 'type' : ''})
      */
-    parseUrl(url) {
+    parseUrl(url: string) {
 
         return Service.Url.parseUrl(url);
     },
@@ -159,7 +176,7 @@ const UrlArea = {
      * @param url string required
      * @return array ({'url' : '', 'protocol' : '', 'onlyDomain' : '', 'onlyUriWithParams' : '', 'type' : ''})
      */
-    normalizeUrl(url) {
+    normalizeUrl(url: string) {
 
         return Service.Url.normalizeUrl(url);
     }
@@ -178,7 +195,7 @@ const XmlArea = {
      * @return array
      *
      */
-    extractAllElements(xmlStr) {
+    extractAllElements(xmlStr: string) {
 
         if (!(xmlStr && typeof xmlStr === 'string')) {
             throw new Error('the variable xmlStr must be a string type and not be null.');
@@ -217,7 +234,7 @@ const XmlArea = {
      * @param xmlStr string required
      * @return array
      */
-    extractAllComments(xmlStr) {
+    extractAllComments(xmlStr: string) {
 
         if (!(xmlStr && typeof xmlStr === 'string')) {
             throw new Error('the variable xmlStr must be a string type and not be null.');
@@ -261,13 +278,13 @@ const XmlArea = {
             }
      * @return array
      */
-    extractAllUrls(xmlStr, skipXml = false, noProtocolJsn) {
+    extractAllUrls(xmlStr: string, skipXml = false, noProtocolJsn: NoProtocolJsnType) {
 
         if (!(xmlStr && typeof xmlStr === 'string')) {
             throw new Error('the variable xmlStr must be a string type and not be null.');
         }
 
-        Pattern.Children.setUrlPattern(noProtocolJsn);
+        OptionalUrlPatternBuilder.setUrlPattern(noProtocolJsn);
 
         let obj = [];
 
@@ -279,7 +296,7 @@ const XmlArea = {
             /* 1. comment */
             for (let a = 0; a < cmt_matches.length; a++) {
 
-                let rx = new RegExp(Pattern.Children.url, 'gi');
+                let rx = new RegExp(OptionalUrlPatternBuilder.getUrl, 'gi');
 
                 let matches = [];
                 let match = {};
@@ -309,7 +326,7 @@ const XmlArea = {
             /* 2. element */
             for (let a = 0; a < el_matches.length; a++) {
 
-                let rx = new RegExp(Pattern.Children.url, 'gi');
+                let rx = new RegExp(OptionalUrlPatternBuilder.getUrl, 'gi');
 
                 let matches = [];
                 let match = {};
@@ -338,10 +355,10 @@ const XmlArea = {
             }
 
             /* 3. Remove all comments */
-            xmlStr = xmlStr.replace(new RegExp(Pattern.Descendants.xml_comment, 'gi'), '');
+            xmlStr = xmlStr.replace(new RegExp(CommentPatterns.xml_comment, 'gi'), '');
 
             /* 4. Remove all elements */
-            xmlStr = xmlStr.replace(new RegExp(Pattern.Descendants.xml_element, "g"), '');
+            xmlStr = xmlStr.replace(new RegExp(CommentPatterns.xml_element, "g"), '');
 
 
         }
@@ -351,7 +368,7 @@ const XmlArea = {
         //console.log('xmlStr : ' + xmlStr);
 
         /* 5. normal text area */
-        let rx = new RegExp(Pattern.Children.url, 'gi');
+        let rx = new RegExp(OptionalUrlPatternBuilder.getUrl, 'gi');
 
         let matches = [];
         let match = {};
@@ -386,7 +403,7 @@ const XmlArea = {
      * @param skipXml boolean (default : false)
      * @return array
      */
-    extractAllEmails(xmlStr, prefixSanitizer = true, skipXml = false) {
+    extractAllEmails(xmlStr: string, prefixSanitizer: boolean = true, skipXml: boolean = false) {
 
         if (!(xmlStr && typeof xmlStr === 'string')) {
             throw new Error('the variable xmlStr must be a string type and not be null.');
@@ -413,7 +430,7 @@ const XmlArea = {
             /* 1. comment */
             for (let a = 0; a < cmt_matches.length; a++) {
 
-                let rx = new RegExp(Pattern.Children.email, 'gi');
+                let rx = new RegExp(EmailPatternBuilder.getEmail, 'gi');
 
                 let matches = [];
                 let match = {};
@@ -463,7 +480,7 @@ const XmlArea = {
             /* 2. element */
             for (let a = 0; a < el_matches.length; a++) {
 
-                let rx = new RegExp(Pattern.Children.email, 'gi');
+                let rx = new RegExp(EmailPatternBuilder.getEmail, 'gi');
 
                 let matches = [];
                 let match = {};
@@ -511,16 +528,16 @@ const XmlArea = {
             }
 
             /* 3. Remove all comments */
-            xmlStr = xmlStr.replace(new RegExp(Pattern.Descendants.xml_comment, 'gi'), '');
+            xmlStr = xmlStr.replace(new RegExp(CommentPatterns.xml_comment, 'gi'), '');
 
             /* 4. Remove all elements */
-            const elementRegex = '(?:' + Pattern.Ancestors.lang_char + '[^<>\\u0022\\u0027\\t\\s]*)';
-            xmlStr = xmlStr.replace(new RegExp(Pattern.Descendants.xml_element, "g"), '');
+            const elementRegex = '(?:' + BasePatterns.langChar + '[^<>\\u0022\\u0027\\t\\s]*)';
+            xmlStr = xmlStr.replace(new RegExp(CommentPatterns.xml_element, "g"), '');
 
         }
 
         /* 5. normal text area */
-        let rx = new RegExp(Pattern.Children.email, 'gi');
+        let rx = new RegExp(EmailPatternBuilder.getEmail, 'gi');
 
         let matches = [];
         let match = {};
@@ -569,9 +586,7 @@ const XmlArea = {
 };
 
 export default {
-
     TextArea,
     UrlArea,
     XmlArea
-
 };

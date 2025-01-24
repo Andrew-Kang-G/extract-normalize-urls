@@ -1,19 +1,28 @@
-import Pattern from "./pattern";
 import Util from "./util";
 
-export const Normalizer = {
+import {FuzzyPartialUrlPatterns} from "./pattern/FuzzyPartialUrlPatterns";
+import {BasePatterns} from "./pattern/BasePatterns";
+import {ProtocolPatterns} from "./pattern/ProtocolPatterns";
+import {NormalizerType} from "./types";
+import {DomainPatterns} from "./pattern/DomainPatterns";
 
-    modified_url : null,
+export const Normalizer: NormalizerType  = {
+
+    modifiedUrl : null,
 
     extractAndNormalizeProtocolFromSpacesRemovedUrl(){
 
+        if (this.modifiedUrl == undefined) {
+            throw new Error("modifiedUrl cannot be null");
+        }
+
         let protocol = null;
 
-        let rx = new RegExp('^(' + Pattern.Descendants.fuzzy_protocols  + '|'+ Pattern.Descendants.fuzzy_protocols2 + ')' + Pattern.Descendants.fuzzy_protocol_domain_delimiter);
+        let rx = new RegExp('^(' + FuzzyPartialUrlPatterns.getFuzzyProtocolsRxStr  + '|'+ FuzzyPartialUrlPatterns.fuzzierProtocol + ')' + FuzzyPartialUrlPatterns.fuzzierProtocolDomainDelimiter);
 
         let match = {};
         let isMatched = false;
-        while ((match = rx.exec(this.modified_url)) !== null) {
+        while ((match = rx.exec(this.modifiedUrl)) !== null) {
 
             if (match[1]) {
 
@@ -26,7 +35,7 @@ export const Normalizer = {
                 }
 
                 let score_arrs = [];
-                let protocol_arrs = Pattern.Ancestors.all_protocols_arrs;
+                let protocol_arrs : Array<string> = ProtocolPatterns.getAllProtocolsArray;
 
                 //console.log('protocol_arrs :' + protocol_arrs);
 
@@ -44,7 +53,7 @@ export const Normalizer = {
 
         }
 
-        this.modified_url = this.modified_url.replace(rx, '');
+        this.modifiedUrl = this.modifiedUrl.replace(rx, '');
 
 
         return protocol;
@@ -53,16 +62,19 @@ export const Normalizer = {
 
     extractAndNormalizeDomainFromProtocolRemovedUrl(){
 
-        let result = {
-            'domain' : null,
-            'type' : null
+        if (this.modifiedUrl == undefined) {
+            throw new Error("modifiedUrl cannot be null");
         }
 
+        let result : ReturnType<NormalizerType["extractAndNormalizeDomainFromProtocolRemovedUrl"]> = {
+            domain : null,
+            type : null
+        }
 
-        let rx1 = new RegExp('(' + Pattern.Descendants.fuzzy_only_domain + '.*?)(' + Pattern.Descendants.fuzzy_port_recommended +
-            Pattern.Descendants.fuzzy_url_params_recommended + ')$', 'gi');
-        let match1 = {};
-        while ((match1 = rx1.exec(this.modified_url)) !== null) {
+        let rx1 = new RegExp('(' + FuzzyPartialUrlPatterns.getFuzzyDomainBody + '.*?)(' + FuzzyPartialUrlPatterns.optionalFuzzyPort +
+            FuzzyPartialUrlPatterns.optionalFuzzyUrlParams + ')$', 'gi');
+        let match1 : RegExpExecArray | null;
+        while ((match1 = rx1.exec(this.modifiedUrl)) !== null) {
 
             // remaining full url
             let domain_temp = match1[0];
@@ -74,12 +86,12 @@ export const Normalizer = {
             //console.log('domain_temp : ' + domain_temp);
 
             // decide domain type
-            if (new RegExp(Pattern.Descendants.fuzzy_ip_v4, 'i').test(domain_temp2)) {
+            if (new RegExp(FuzzyPartialUrlPatterns.getDoubleFuzzyIpV4, 'i').test(domain_temp2)) {
 
-                result['type'] = 'ip_v4';
+                result.type = 'ip_v4';
 
                 // with id pwd
-                if(new RegExp('^.*@' + Pattern.Descendants.fuzzy_ip_v4, 'i').test(domain_temp)){
+                if(new RegExp('^.*@' + FuzzyPartialUrlPatterns.getDoubleFuzzyIpV4, 'i').test(domain_temp)){
                     domain_temp2 = domain_temp2.replace(new RegExp('[^0-9]+$', 'g'), '');
                 }else{
                     domain_temp2 = domain_temp2.replace(new RegExp('^[^0-9]+', 'g'), '');
@@ -88,12 +100,12 @@ export const Normalizer = {
                 }
 
 
-            } else if (new RegExp(Pattern.Descendants.fuzzy_ip_v6, 'i').test(domain_temp2)) {
+            } else if (new RegExp(FuzzyPartialUrlPatterns.getDoubleFuzzyIpV6, 'i').test(domain_temp2)) {
 
-                result['type']  = 'ip_v6';
+                result.type  = 'ip_v6';
 
                 // with id pwd
-                if(new RegExp('^.*@' + Pattern.Descendants.fuzzy_ip_v6, 'i').test(domain_temp2)){
+                if(new RegExp('^.*@' + FuzzyPartialUrlPatterns.getDoubleFuzzyIpV6, 'i').test(domain_temp2)){
 
                     if(domain_temp2.split('@[')[1]){
                         let afterAt = domain_temp2.split('@[')[1];
@@ -108,8 +120,8 @@ export const Normalizer = {
 
             } else if (/^localhost$/i.test(domain_temp2)) {
 
-                result['type']  = 'localhost';
-                //domain_temp = domain_temp.replace(new RegExp(Pattern.Ancestors.not_allowed_char_on_domain, 'gi'), '');
+                result.type  = 'localhost';
+                //domain_temp = domain_temp.replace(new RegExp(BasePatterns.not_allowed_char_on_domain, 'gi'), '');
 
             } else {
 
@@ -118,17 +130,17 @@ export const Normalizer = {
                 //console.log('domain_temp1.52 : ' + domain_temp3);
                 // ,com ,co,.kr ...
                 domain_temp2 = domain_temp2.replace(new RegExp
-                ('' + Pattern.Ancestors.all_keypad_meta_chars_without_delimiters + '+'+ '(' + Pattern.Ancestors.all_root_domains + '|[a-zA-Z]+)', 'gi'), '.$1');
+                ('' + BasePatterns.allKeypadMetaCharsWithoutDelimiters + '+'+ '(' + DomainPatterns.allRootDomains + '|[a-zA-Z]+)', 'gi'), '.$1');
 
                 let domain_temp_root_domain_match = new RegExp('\\.([^.]+)$', 'i').exec(domain_temp2);
                 if(domain_temp_root_domain_match !== null){
                     if(domain_temp_root_domain_match[1]){
 
                         let score_arrs = [];
-                        let root_domains_arrs = Pattern.Ancestors.all_root_domains_arrs;
+                        let root_domains_arrs = DomainPatterns.getAllRootDomainsArr;
 
                         root_domains_arrs.forEach(function (val, idx) {
-                            score_arrs.push(Util.Text.similarity(val, domain_temp_root_domain_match[1]));
+                            score_arrs.push(Util.Text.similarity(val, domain_temp_root_domain_match?.[1]));
                         });
 
                         //console.log('sa : ' + score_arrs);
@@ -139,17 +151,17 @@ export const Normalizer = {
                     }
                 }
 
-                result['type']  = 'domain';
+                result.type  = 'domain';
 
-                domain_temp2 = domain_temp2.replace(new RegExp('^' + Pattern.Ancestors.no_lang_char + '+', 'i'), '');
-                //domain_temp = domain_temp.replace(new RegExp(Pattern.Ancestors.not_allowed_char_on_domain, 'gi'), '');
-                domain_temp2 = domain_temp2.replace(new RegExp(Pattern.Ancestors.no_lang_char + '+$', 'i'), '');
+                domain_temp2 = domain_temp2.replace(new RegExp('^' + BasePatterns.noLangChar + '+', 'i'), '');
+                //domain_temp = domain_temp.replace(new RegExp(BasePatterns.not_allowed_char_on_domain, 'gi'), '');
+                domain_temp2 = domain_temp2.replace(new RegExp(BasePatterns.noLangChar + '+$', 'i'), '');
             }
 
             //console.log('domain_temp2 : ' + domain_temp2);
 
             // root domain integrity
-            if(result['type'] === 'domain') {
+            if(result.type === 'domain') {
                 // root domain integrity
                 let d2_arrs = domain_temp2.split('.');
 
@@ -159,11 +171,11 @@ export const Normalizer = {
                 let root_domain = '';
                 let root_domain2 = null;
                 let sub_root_domain = '';
-                if ((match_rt = new RegExp(Pattern.Ancestors.all_root_domains, 'i').exec(d2_arrs[d2_arrs.length - 1])) !== null && d2_arrs.length >= 2) {
+                if ((match_rt = new RegExp(DomainPatterns.allRootDomains, 'i').exec(d2_arrs[d2_arrs.length - 1])) !== null && d2_arrs.length >= 2) {
                     root_domain = match_rt[0];
                 }
                 if (d2_arrs.length >= 3 && d2_arrs[d2_arrs.length - 2].length < 4) {
-                    if ((match_srt = new RegExp(Pattern.Ancestors.all_root_domains, 'i').exec(d2_arrs[d2_arrs.length - 2])) !== null) {
+                    if ((match_srt = new RegExp(DomainPatterns.allRootDomains, 'i').exec(d2_arrs[d2_arrs.length - 2])) !== null) {
                         root_domain2 = match_srt[0];
                     }
                 }
@@ -180,21 +192,21 @@ export const Normalizer = {
 
                 })
 
-                result['domain'] = calculated_domain;
+                result.domain = calculated_domain;
 
             }else{
 
-                result['domain'] = domain_temp2;
+                result.domain = domain_temp2;
             }
 
-            this.modified_url = domain_temp3;
+            this.modifiedUrl = domain_temp3;
 
         }
 
         /*            modified_url = modified_url.replace(new RegExp('(' + Pattern.Descendants.fuzzy_only_domain + '.*?)' + Pattern.Descendants.fuzzy_port_recommended +
                         Pattern.Descendants.fuzzy_url_params_recommended + '$', 'gi'), '');*/
         //console.log('modified_url : ' + this.modified_url);
-        this.modified_url = this.modified_url.replace(new RegExp('^(?:' + Pattern.Ancestors.two_bytes_num + '|' +  Pattern.Ancestors.lang_char + ')+', 'i'), '');
+        this.modifiedUrl = this.modifiedUrl.replace(new RegExp('^(?:' + BasePatterns.twoBytesNum + '|' +  BasePatterns.langChar + ')+', 'i'), '');
         //console.log('modified_url2 : ' + this.modified_url);
         return result;
 
@@ -204,29 +216,35 @@ export const Normalizer = {
 
         let port = null;
 
-        let rx2 = new RegExp('^' + Pattern.Descendants.fuzzy_port_must, 'gi');
-        let match2 = {};
-
-        //console.log('aa : ' + this.modified_url)
-
-        while  ((match2 = rx2.exec(this.modified_url)) !== null) {
+        let rx = new RegExp('^' + FuzzyPartialUrlPatterns.mandatoryFuzzyPort, 'gi');
+        let match: RegExpExecArray | null;
 
 
-            port = match2[0].replace( /^\D+/g, '');
-            this.modified_url = this.modified_url.replace(rx2, '');
+        if (this.modifiedUrl == undefined) {
+            throw new Error("modifiedUrl cannot be null");
+        }
+        while((match = rx.exec(this.modifiedUrl)) !== null) {
+            port = match[0].replace( /^\D+/g, '');
+            if (this.modifiedUrl != undefined) {
+                this.modifiedUrl = this.modifiedUrl.replace(rx, '');
+            }
         }
 
         return port;
 
     },
 
-    finalizeNormalization(protocol, port, domain){
+    finalizeNormalization(protocol, port, domain): string{
+
+        if (this.modifiedUrl == undefined) {
+            throw new Error("modifiedUrl cannot be null");
+        }
 
         /* Now, only the end part of a domain is left */
         /* Consecutive param delimiters should be replaced into one */
-        this.modified_url = this.modified_url.replace(/[#]{2,}/gi, '#');
-        this.modified_url  = this.modified_url.replace(/[/]{2,}/gi, '/');
-        this.modified_url  = this.modified_url.replace(/(.*?)[?]{2,}([^/]*?(?:=|$))(.*)/i, function(match, $1, $2, $3){
+        this.modifiedUrl = this.modifiedUrl.replace(/[#]{2,}/gi, '#');
+        this.modifiedUrl  = this.modifiedUrl.replace(/[/]{2,}/gi, '/');
+        this.modifiedUrl  = this.modifiedUrl.replace(/(.*?)[?]{2,}([^/]*?(?:=|$))(.*)/i, function(match, $1, $2, $3){
             //console.log(modified_url + ' a :' + $1 + '?' + $2 + $3);
             return $1 + '?' + $2 + $3;
         });
@@ -234,9 +252,9 @@ export const Normalizer = {
         /* 'modified_url' must start with '/,?,#' */
         let rx_modified_url = new RegExp('(?:\\/|\\?|\\#)', 'i');
         let match_modified_url = {};
-        if ((match_modified_url = rx_modified_url.exec(this.modified_url)) !== null) {
+        if ((match_modified_url = rx_modified_url.exec(this.modifiedUrl)) !== null) {
 
-            this.modified_url = this.modified_url.replace(new RegExp('^.*?(' + Util.Text.escapeRegex(match_modified_url[0]) + '.*)$', 'i'), function(match, $1){
+            this.modifiedUrl = this.modifiedUrl.replace(new RegExp('^.*?(' + Util.Text.escapeRegex(match_modified_url[0]) + '.*)$', 'i'), function(match, $1){
                 return $1;
             });
         }
@@ -260,11 +278,15 @@ export const Normalizer = {
             onlyDomain_str = '';
         }
 
-        return protocol_str + onlyDomain_str + port_str + this.modified_url;
+        return protocol_str + onlyDomain_str + port_str + this.modifiedUrl;
 
     },
 
     extractAndNormalizeUriParamsFromPortRemovedUrl(){
+
+        if (this.modifiedUrl == undefined || this.modifiedUrl == null) {
+            throw new Error("modifiedUrl cannot be null");
+        }
 
         let result = {
             uri : null,
@@ -272,37 +294,37 @@ export const Normalizer = {
         };
 
 
-        if(!this.modified_url || this.modified_url.trim() === ''){
+        if(!this.modifiedUrl || this.modifiedUrl.trim() === ''){
 
-            result['params'] = null;
-            result['uri'] = null;
+            result.params = null;
+            result.uri = null;
 
         }else{
 
             // PARAMS
             let rx3 = new RegExp('\\?(?:.)*$', 'gi');
             let match3 = {};
-            while ((match3 = rx3.exec(this.modified_url)) !== null) {
+            while ((match3 = rx3.exec(this.modifiedUrl)) !== null) {
 
-                result['params'] = match3[0];
+                result.params = match3[0];
             }
-            this.modified_url = this.modified_url.replace(rx3, '');
+            this.modifiedUrl = this.modifiedUrl.replace(rx3, '');
 
-            if (result['params'] === "?") {
-                result['params']  = null;
+            if (result.params === "?") {
+                result.params  = null;
             }
 
 
             // URI
             let rx4 = new RegExp('[#/](?:.)*$', 'gi');
             let match4 = {};
-            while ((match4 = rx4.exec(this.modified_url)) !== null) {
-                result['uri'] = match4[0];
+            while ((match4 = rx4.exec(this.modifiedUrl)) !== null) {
+                result.uri = match4[0];
             }
-            this.modified_url = this.modified_url.replace(rx4, '');
+            this.modifiedUrl = this.modifiedUrl.replace(rx4, '');
 
-            if (result['uri'] === "/") {
-                result['uri'] = null;
+            if (result.uri === "/") {
+                result.uri = null;
             }
 
         }
