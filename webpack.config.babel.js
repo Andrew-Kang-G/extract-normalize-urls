@@ -9,8 +9,9 @@ module.exports = {
 		publicPath: '../dist/',
 		filename: 'url-knife.bundle.js',
 		chunkFilename: '[id].bundle.js',
-		libraryTarget: 'var',
 		library: 'Pattern',
+		libraryTarget: 'umd',
+		globalObject: 'this',
 	},
 	resolve: {
 		extensions: ['.ts', '.js'],

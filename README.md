@@ -17,7 +17,7 @@ For ES5 users,
        <body>
        	<script src="../dist/url-knife.bundle.js"></script>
         <--! OR !-->
-       	<script src="https://cdn.jsdelivr.net/gh/patternknife/url-knife@3.2.1/dist/url-knife.bundle.min.js"></script>
+       	<script src="https://cdn.jsdelivr.net/gh/patternknife/url-knife@4.0.1/dist/url-knife.bundle.min.js"></script>
        	
        	<script type="text/javascript">
        	</script>
@@ -29,7 +29,7 @@ For ES6 npm users, run 'npm install --save url-knife' on console.
 (**Requred Node v18.20.4**)
 
 ``` html
-import Pattern from 'url-knife';
+import {TextArea, UrlArea, XmlArea} from 'url-knife';
 ```
 
 ## Syntax & Usage

@@ -585,7 +585,7 @@ const XmlArea = {
 
 };
 
-export default {
+export {
     TextArea,
     UrlArea,
     XmlArea

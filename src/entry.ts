@@ -1,2 +1,4 @@
-import Pattern from './controller';
-export default Pattern;
+import { TextArea, UrlArea, XmlArea } from './controller';
+export  {
+    TextArea, UrlArea, XmlArea
+};

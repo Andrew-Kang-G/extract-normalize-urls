@@ -3,6 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.XmlArea = exports.UrlArea = exports.TextArea = void 0;
 const service_1 = __importDefault(require("./service"));
 const OptionalUrlPatternBuilder_1 = require("./pattern/OptionalUrlPatternBuilder");
 const DomainPatterns_1 = require("./pattern/DomainPatterns");
@@ -109,6 +110,7 @@ const TextArea = {
         return obj_final;
     },
 };
+exports.TextArea = TextArea;
 const UrlArea = {
     /**
      * @brief
@@ -131,6 +133,7 @@ const UrlArea = {
         return service_1.default.Url.normalizeUrl(url);
     }
 };
+exports.UrlArea = UrlArea;
 const XmlArea = {
     /**
      *
@@ -405,8 +408,4 @@ const XmlArea = {
         return obj;
     }
 };
-exports.default = {
-    TextArea,
-    UrlArea,
-    XmlArea
-};
+exports.XmlArea = XmlArea;

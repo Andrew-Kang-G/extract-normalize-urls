@@ -1,4 +1,5 @@
-import Pattern from "../src/entry";
+import {TextArea, UrlArea} from "../src/entry";
+
 const assert = require('assert');
 /*function test(title, testCode) {
     try {
@@ -37,11 +38,11 @@ describe('BDD style', function() {
 
     describe('UrlArea', function() {
         it('normalizeUrl', function() {
-            expect(Pattern.UrlArea.normalizeUrl("htp/:/abcgermany.,def;:9094 #park//noon??abc=retry").normalizedUrl)
+            expect(UrlArea.normalizeUrl("htp/:/abcgermany.,def;:9094 #park//noon??abc=retry").normalizedUrl)
                 .toBe("http://abcgermany.de:9094#park/noon?abc=retry");
         });
         it('parseUrl', function() {
-            expect(Pattern.UrlArea.parseUrl("xtp://gooppalgo.com/park/tree/?abc=1").onlyUriWithParams)
+            expect(UrlArea.parseUrl("xtp://gooppalgo.com/park/tree/?abc=1").onlyUriWithParams)
                 .toBe("/park/tree/?abc=1");
         });
     });
@@ -59,7 +60,7 @@ describe('BDD style', function() {
 
 
         it('extractAllUrls', function() {
-            assert.deepEqual(Pattern.TextArea.extractAllUrls(textStr), [
+            assert.deepEqual(TextArea.extractAllUrls(textStr), [
                 {
                     "value": {
                         "url": "http://[::1]:8000",
@@ -324,7 +325,7 @@ describe('BDD style', function() {
         });
 
         it('extractAllUrlsWithIntranets', function() {
-            assert.deepEqual(Pattern.TextArea.extractAllUrls(textStr, {ip_v4 : false, ip_v6 :false, localhost : false,  intranet : true}), [
+            assert.deepEqual(TextArea.extractAllUrls(textStr, {ip_v4 : false, ip_v6 :false, localhost : false,  intranet : true}), [
                 {
                     "value": {
                         "url": "http://[::1]:8000",
@@ -648,7 +649,7 @@ describe('BDD style', function() {
         });
 
        it('extractAllEmails', function() {
-            assert.deepEqual(Pattern.TextArea.extractAllEmails(textStr, true), [
+            assert.deepEqual(TextArea.extractAllEmails(textStr, true), [
                 {
                     "value": {
                         "email": "가나다@apacbook.ac.kr",
