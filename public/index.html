@@ -198,7 +198,7 @@
     }
 
     start();
-    console.log('final_3_1 : ' + JSON.stringify(Pattern.TextArea.extractAllUrls(textStr, {ip_v4 : false, ip_v6 :false,  localhost : false, intranet : true}), null, 2));
+    console.log('final_3_1 : ' + JSON.stringify(Pattern.TextArea.extractAllUrls(textStr, {ipV4 : false, ipV6 :false,  localhost : false, intranet : true}), null, 2));
     console.log('final_3_2 : ' + JSON.stringify(Pattern.UrlArea.parseUrl("packed1book.net?user[name][first]=tj&user[name][last]=holowaychuk"), null, 2));
     console.log('final_3_3 : ' + JSON.stringify(Pattern.UrlArea.normalizeUrl("tnae1ver.co. jp;8000"), null, 2));
     console.log('final_3_3 : ' + JSON.stringify(Pattern.UrlArea.normalizeUrl("htp/:/abcgermany.,def;:9094 ##park//noon??abc==retry"), null, 2));

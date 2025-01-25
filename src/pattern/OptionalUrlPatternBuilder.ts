@@ -4,15 +4,15 @@ import {DomainPatterns} from "./DomainPatterns";
 import {ProtocolPatterns} from "./ProtocolPatterns";
 import {PortPatterns} from "./PortPatterns";
 import {ParamsPatterns} from "./ParamsPatterns";
-import {NoProtocolJsnType} from "../types";
+import {NoProtocolJsnParamType} from "../types";
 
 
 export class OptionalUrlPatternBuilder{
 
-    static #_url;
+    static #_url: string;
 
     // 1. URL
-    static setUrlPattern(noProtocolJsn: NoProtocolJsnType) {
+    static setUrlPattern(noProtocolJsn: NoProtocolJsnParamType) {
         this.url = noProtocolJsn;
     }
 
@@ -28,18 +28,18 @@ export class OptionalUrlPatternBuilder{
         );
     }
 
-    static set url(noProtocolJsn: NoProtocolJsnType) {
+    static set url(noProtocolJsn: NoProtocolJsnParamType) {
         if (noProtocolJsn) {
             try {
                 Valid.checkIfProtocolJsnObjOrFail(noProtocolJsn);
 
                 let is_p = true;
                 let no_p = "";
-                if (noProtocolJsn.ip_v4) {
+                if (noProtocolJsn.ipV4) {
                     no_p = DomainPatterns.ipV4 + "|";
                     is_p = false;
                 }
-                if (noProtocolJsn.ip_v6) {
+                if (noProtocolJsn.ipV6) {
                     no_p += DomainPatterns.ipV6 + "|";
                     is_p = false;
                 }

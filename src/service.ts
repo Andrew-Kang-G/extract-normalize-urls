@@ -5,7 +5,16 @@ import {OptionalUrlPatternBuilder} from "./pattern/OptionalUrlPatternBuilder";
 import {BasePatterns} from "./pattern/BasePatterns";
 import {DomainPatterns} from "./pattern/DomainPatterns";
 import {ProtocolPatterns} from "./pattern/ProtocolPatterns";
-import {EmailInfo, ParsedUrl, ParsedUrlWithNormalization} from "./types";
+import {
+    CommentMatch,
+    ElementMatch,
+    EmailInfoType,
+    EmailMatch,
+    IndexContainingBaseMatch,
+    NormalizerType,
+    ParsedUrlType,
+    ParsedUrlWithNormalizationType
+} from "./types";
 import {ParamsPatterns} from "./pattern/ParamsPatterns";
 import {EmailPatternBuilder} from "./pattern/EmailPatternBuilder";
 import {CommentPatterns} from "./pattern/CommentPatterns";
@@ -16,9 +25,7 @@ const queryString = require('query-string');
 * */
 const Text = {
 
-    extractAllPureUrls(textStr) {
-
-        //console.log('a : ' + Pattern.Children.url);
+    extractAllPureUrls(textStr: string): IndexContainingBaseMatch[] {
 
         if (!(textStr && typeof textStr === 'string')) {
             throw new Error('the variable textStr must be a string type and not be null.');
@@ -46,7 +53,7 @@ const Text = {
 
             /* SKIP DEPENDENCY */
             if (re.onlyDomain && new RegExp('^(?:\\.|[0-9]|' + BasePatterns.twoBytesNum + ')+$', 'i').test(re.onlyDomain)) {
-                // ip_v4 is OK
+                // ipV4 is OK
                 if (!new RegExp('^' + DomainPatterns.ipV4 + '$', 'i').test(re.onlyDomain)) {
                     continue;
                 }
@@ -59,13 +66,13 @@ const Text = {
             }
 
             obj.push({
-                'value': re,
-                'area': 'text',
-                'index': {
-                    'start': startIdx,
-                    'end': endIdx
+                value: re,
+                area: 'text',
+                index: {
+                    start: startIdx,
+                    end: endIdx
                 }
-            });
+            } as IndexContainingBaseMatch);
         }
 
         return obj;
@@ -75,7 +82,7 @@ const Text = {
     /*
     * [!!IMPORTANT] Should be refactored.
     * */
-    extractCertainPureUris(textStr, uris, endBoundary) {
+    extractCertainPureUris(textStr: string, uris: Array<Array<string>>, endBoundary: boolean): IndexContainingBaseMatch[] {
 
         let uriRx = Util.Text.urisToOneRxStr(uris);
 
@@ -116,13 +123,13 @@ const Text = {
             let mod_val = match[0];
 
             obj.push({
-                'value': Url.parseUrl(mod_val),
-                'area': 'text',
-                'index': {
-                    'start': match.index,
-                    'end': match.index + match[0].length
+                value: Url.parseUrl(mod_val),
+                area: 'text',
+                index: {
+                    start: match.index,
+                    end: match.index + match[0].length
                 }
-            });
+            } as IndexContainingBaseMatch);
         }
 
 
@@ -130,7 +137,7 @@ const Text = {
 
     },
 
-    extractAllPureEmails(textStr, final_prefixSanitizer) {
+    extractAllPureEmails(textStr: string, finalPrefixSanitizer: boolean): EmailMatch[] {
 
         if (!(textStr && typeof textStr === 'string')) {
             throw new Error('the variable textStr must be a string type and not be null.');
@@ -154,7 +161,7 @@ const Text = {
 
 
             /* prefixSanitizer */
-            if (final_prefixSanitizer === true) {
+            if (finalPrefixSanitizer) {
 
                 // the 'border' is a en char that divides non-en and en areas.
                 let border = '';
@@ -164,7 +171,7 @@ const Text = {
 
                 let is_mod_val_front_only_foreign_lang = true;
 
-                let match2 = {};
+                let match2: RegExpExecArray | null;
                 if ((match2 = rx_left_plus_border.exec(mod_val_front)) !== null) {
 
                     is_mod_val_front_only_foreign_lang = false;
@@ -197,19 +204,16 @@ const Text = {
             }
 
             obj.push({
-                'value': re,
-                'area': 'text',
-                'index': {
-                    'start': st_idx,
-                    'end': end_idx
+                value: re,
+                area: 'text',
+                index: {
+                    start: st_idx,
+                    end: end_idx
                 },
-                'pass': Email.strictTest(re.email)
-            });
+                pass: Email.strictTest(re.email)
+            } as EmailMatch);
         }
-
         return obj;
-
-
     }
 };
 
@@ -222,9 +226,9 @@ const Url = {
      * @param url string required
      * @return array ({'url' : '', 'protocol' : '', 'onlyDomain' : '', 'onlyUriWithParams' : '', 'type' : ''})
      */
-    normalizeUrl(url) {
+    normalizeUrl(url: string): ParsedUrlWithNormalizationType {
 
-        let obj: ParsedUrlWithNormalization = {
+        let obj: ParsedUrlWithNormalizationType = {
             url: null,
             normalizedUrl: null,
             removedTailOnUrl: '',
@@ -240,7 +244,7 @@ const Url = {
 
         try {
 
-            url = Valid.checkIfStrOrFailAndTrimStr(url);
+            url = Valid.validateAndTrimString(url);
 
 
             /* Chapter 1. Normalizing process */
@@ -254,11 +258,9 @@ const Url = {
             obj.protocol = Normalizer.extractAndNormalizeProtocolFromSpacesRemovedUrl();
 
             // 3. Domain
-            let typeDomain = Normalizer.extractAndNormalizeDomainFromProtocolRemovedUrl();
-            obj.type = typeDomain.type;
-            obj.onlyDomain = typeDomain.domain;
-
-            //console.log('modified_url : ' + Normalizer.modified_url);
+            let domainWithType: ReturnType<NormalizerType["extractAndNormalizeDomainFromProtocolRemovedUrl"]> = Normalizer.extractAndNormalizeDomainFromProtocolRemovedUrl();
+            obj.type = domainWithType.type;
+            obj.onlyDomain = domainWithType.domain;
 
             // 4. Port
             obj.port = Normalizer.extractAndNormalizePortFromDomainRemovedUrl();
@@ -267,7 +269,7 @@ const Url = {
             obj.normalizedUrl = Normalizer.finalizeNormalization(obj.protocol, obj.port, obj.onlyDomain);
 
             // 6. Params & URI
-            let uriParams = Normalizer.extractAndNormalizeUriParamsFromPortRemovedUrl();
+            let uriParams: ReturnType<NormalizerType["extractAndNormalizeUriParamsFromPortRemovedUrl"]> = Normalizer.extractAndNormalizeUriParamsFromPortRemovedUrl();
             obj.onlyUri = uriParams.uri;
             obj.onlyParams = uriParams.params;
 
@@ -303,7 +305,7 @@ const Url = {
             // If no uris no params, we remove suffix in case that it is a meta character.
             if (obj.onlyUri === null && obj.onlyParams === null) {
 
-                if (obj.type !== 'ip_v6') {
+                if (obj.type !== 'ipV6') {
                     // removedTailOnUrl
                     let rm_part_matches = obj.normalizedUrl.match(new RegExp(BasePatterns.noLangCharNum + '+$', 'gi'));
                     if (rm_part_matches) {
@@ -452,9 +454,9 @@ const Url = {
      * @param url string required
      * @return array ({'url' : '', 'protocol' : '', 'onlyDomain' : '', 'onlyUriWithParams' : '', 'type' : ''})
      */
-    parseUrl(url): ParsedUrl {
+    parseUrl(url: string): ParsedUrlType {
 
-        let obj: ParsedUrl = {
+        let obj: ParsedUrlType = {
             url: null,
             removedTailOnUrl: '',
             protocol: null,
@@ -469,7 +471,7 @@ const Url = {
 
         try {
 
-            url = Valid.checkIfStrOrFailAndTrimStr(url);
+            url = Valid.validateAndTrimString(url);
 
             url = Util.Text.removeAllSpaces(url);
 
@@ -487,7 +489,7 @@ const Url = {
             // 2. protocol
             let rx = new RegExp('^([a-zA-Z0-9]+):');
 
-            let match = {};
+            let match: RegExpExecArray | null;
             let isMatched = false;
             while ((match = rx.exec(url)) !== null) {
 
@@ -528,7 +530,7 @@ const Url = {
 
             // 4. Separate params
             let rx3 = new RegExp('\\?(?:.|[\\s])*$', 'gi');
-            let match3 = {};
+            let match3: RegExpExecArray | null;
             while ((match3 = rx3.exec(url)) !== null) {
                 obj.onlyParams = match3[0];
             }
@@ -579,9 +581,13 @@ const Url = {
 
             // 8. port
             if (/:[0-9]+$/.test(url)) {
-                obj.port = url.match(/[0-9]+$/)[0];
-                url = url.replace(/:[0-9]+$/, '');
+                const portMatch = url.match(/[0-9]+$/);
+                if (portMatch) {
+                    obj.port = portMatch[0];
+                    url = url.replace(/:[0-9]+$/, '');
+                }
             }
+
 
             // 9.
             obj.onlyDomain = url;
@@ -589,10 +595,10 @@ const Url = {
 
             // 10. type : domain, ip, localhost
             if (new RegExp('^' + DomainPatterns.ipV4, 'i').test(url)) {
-                obj.type = 'ip_v4';
+                obj.type = 'ipV4';
             } else if (new RegExp('^' + DomainPatterns.ipV6, 'i').test(url)) {
                 //console.log('r : ' + url);
-                obj.type = 'ip_v6';
+                obj.type = 'ipV6';
             } else if (/^localhost/i.test(url)) {
                 obj.type = 'localhost';
             } else {
@@ -605,7 +611,7 @@ const Url = {
 
                 if(obj.url) {
 
-                    if (obj.type !== 'ip_v6') {
+                    if (obj.type !== 'ipV6') {
                         // removedTailOnUrl
                         let rm_part_matches = obj.url.match(new RegExp(BasePatterns.noLangCharNum + '+$', 'gi'));
                         if (rm_part_matches) {
@@ -762,9 +768,9 @@ const Url = {
 };
 
 const Email = {
-    assortEmail(email) {
+    assortEmail(email: string): EmailInfoType {
 
-        let obj : EmailInfo = {
+        let obj : EmailInfoType = {
             email: null,
             removedTailOnEmail: null,
             type: null
@@ -772,7 +778,7 @@ const Email = {
 
         try {
 
-            email = Valid.checkIfStrOrFailAndTrimStr(email);
+            email = Valid.validateAndTrimString(email);
             email = Util.Text.removeAllSpaces(email);
 
             if (!Valid.isEmailPattern(email)) {
@@ -782,10 +788,10 @@ const Email = {
             obj.email = email;
 
             if (new RegExp('@' + BasePatterns.everything + '*' + DomainPatterns.ipV4, 'i').test(email)) {
-                obj.type = 'ip_v4';
+                obj.type = 'ipV4';
             } else if (new RegExp('@' + BasePatterns.everything + '*' + DomainPatterns.ipV6, 'i').test(email)) {
                 //console.log('r : ' + url);
-                obj.type = 'ip_v6';
+                obj.type = 'ipV6';
             } else {
                 obj.type = 'domain';
             }
@@ -793,7 +799,7 @@ const Email = {
 
             // If no uris no params, we remove suffix in case that it is a meta character.
             if(obj.email) {
-                if (obj.type !== 'ip_v6') {
+                if (obj.type !== 'ipV6') {
                     // removedTailOnUrl
                     let rm_part_matches = obj.email.match(new RegExp(BasePatterns.noLangCharNum + '+$', 'gi'));
                     if (rm_part_matches) {
@@ -845,7 +851,7 @@ const Email = {
         }
 
     },
-    strictTest(email) {
+    strictTest(email: string | null | undefined): boolean {
 
         // Test for total length of RFC-2821 etc...
         try {
@@ -878,7 +884,7 @@ const Email = {
 
 const Xml = {
 
-    extractAllPureElements(xmlStr) {
+    extractAllPureElements(xmlStr: string): ElementMatch[] {
 
         const rx = new RegExp(CommentPatterns.xml_element, "g");
 
@@ -893,7 +899,7 @@ const Xml = {
                 'elementName': match[0].split(/[\t\s]+|>/)[0].replace(/^</, ''),
                 'startIndex': match.index,
                 'lastIndex': match.index + match[0].length - 1
-            })
+            } as ElementMatch)
 
         }
 
@@ -901,7 +907,7 @@ const Xml = {
 
     },
 
-    extractAllPureComments(xmlStr) {
+    extractAllPureComments(xmlStr: string): CommentMatch[] {
 
         const rx = new RegExp(CommentPatterns.xml_comment, 'gi');
 
@@ -914,7 +920,7 @@ const Xml = {
                 'value': match[0],
                 'startIndex': match.index,
                 'lastIndex': match.index + match[0].length - 1
-            })
+            } as CommentMatch)
 
         }
 

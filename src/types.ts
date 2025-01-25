@@ -1,61 +1,12 @@
-// types.ts
-// [NOTICE] As this library was originally Javascript, Types are being improved.
-
-// Common Types
-/*export type IndexRange = {
-    start: number;
-    end: number;
-};*/
-
-
 // Text Area Types
-export type ExtractedUri = {
-    value: ParsedUrl;
-    area: string;
-};
-
-/*export type ExtractedEmail = {
-    value: string;
-    area: string;
-};*/
-
-/*export type ExtractedUriResult = {
-    uri_detected: ExtractedUri;
-    in_what_url: ExtractedUri | null;
-};*/
-
-/*// URL Area Types
-export type UrlType = {
-    url: string;
-    protocol: string;
-    onlyDomain: string;
-    onlyUriWithParams: string;
-    type: string;
-};
-
-// XML Area Types
-export type XmlCommentMatch = {
-    value: string;
-    startIndex: number;
-    lastIndex: number;
-};
-
-export type XmlElementMatch = {
-    elementName: string;
-    value: string;
-    startIndex: number;
-    lastIndex: number;
-    commentArea?: boolean;
-};*/
-
-export type NoProtocolJsnType = {
-    ip_v4?: boolean;
-    ip_v6?: boolean;
+export type NoProtocolJsnParamType = {
+    ipV4?: boolean;
+    ipV6?: boolean;
     localhost?: boolean;
     intranet?: boolean;
 };
 
-export interface ParsedUrl {
+export interface ParsedUrlType {
     url: string | null;              // Full URL or null
     removedTailOnUrl: string;        // Part of the URL removed from the tail
     protocol: string | null;         // URL protocol (e.g., http, https) or null
@@ -68,7 +19,7 @@ export interface ParsedUrl {
     port: string | null;             // Port number or null
 }
 
-export interface ParsedUrlWithNormalization extends ParsedUrl {
+export interface ParsedUrlWithNormalizationType extends ParsedUrlType {
     normalizedUrl: string | null;    // Normalized version of the URL or null
 }
 
@@ -83,7 +34,7 @@ export type NormalizerType = {
     // Extracts and normalizes domain information from the URL
     extractAndNormalizeDomainFromProtocolRemovedUrl: () => {
         domain: string | null;
-        type: "ip_v4" | "ip_v6" | "localhost" | "domain" | null;
+        type: "ipV4" | "ipV6" | "localhost" | "domain" | null;
     };
 
     // Extracts and normalizes port from the URL
@@ -103,8 +54,55 @@ export type NormalizerType = {
     };
 }
 
-export type EmailInfo = {
+export type EmailInfoType = {
     email: string | null;             // Full email address or null
     removedTailOnEmail: string | null; // Part of the email removed from the tail or null
-    type: "ip_v4" | "ip_v6" | "domain" | null;
+    type: "ipV4" | "ipV6" | "domain" | null;
 };
+
+
+export interface ElementMatch {
+    value: string;
+    elementName: string;
+    startIndex: number;
+    lastIndex: number;
+    commentArea: boolean | null;
+}
+
+export interface CommentMatch {
+    value: string;
+    startIndex: number;
+    lastIndex: number;
+}
+
+export interface StringValueBaseMatch {
+    value: string;
+    area: string;
+}
+
+export interface BaseMatch {
+    value: ParsedUrlType;
+    area: string;
+}
+
+export interface IndexContainingBaseMatch extends BaseMatch{
+    index: {
+        start: number;
+        end: number;
+    };
+}
+
+export interface ExtractCertainUriMatch  {
+    uriDetected?: IndexContainingBaseMatch;
+    inWhatUrl?: IndexContainingBaseMatch;
+}
+
+export interface EmailMatch {
+    value: EmailInfoType;
+    area: string;
+    index: {
+        start: number;
+        end: number;
+    };
+    pass: boolean;
+}

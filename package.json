@@ -1,6 +1,6 @@
 {
   "name": "url-knife",
-  "version": "4.0.1",
+  "version": "4.1.0",
   "description": "Extract and decompose (fuzzy) URLs (including emails, which are conceptually a part of URLs) in texts with robust patterns.",
   "main": "src/entry.ts",
   "scripts": {
@@ -41,6 +41,7 @@
     "lodash": "^4.17.11",
     "minimatch": "^3.0.2",
     "mocha": "^6.2.3",
+    "prettier": "^3.4.2",
     "ts-loader": "^7.0.5",
     "ts-node": "^10.9.2",
     "typescript": "^5.7.2",

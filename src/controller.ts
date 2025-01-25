@@ -1,5 +1,13 @@
 import Service from './service';
-import {NoProtocolJsnType} from "./types";
+import {
+    BaseMatch,
+    ElementMatch,
+    EmailMatch,
+    ExtractCertainUriMatch,
+    IndexContainingBaseMatch,
+    NoProtocolJsnParamType,
+    StringValueBaseMatch
+} from "./types";
 import {OptionalUrlPatternBuilder} from "./pattern/OptionalUrlPatternBuilder";
 import {DomainPatterns} from "./pattern/DomainPatterns";
 import {CommentPatterns} from "./pattern/CommentPatterns";
@@ -21,8 +29,8 @@ const TextArea = {
      * @param textStr string required
      * @param noProtocolJsn object
      *    default :  {
-                'ip_v4' : false,
-                'ip_v6' : false,
+                'ipV4' : false,
+                'ipV6' : false,
                 'localhost' : false,
                 'intranet' : false
             }
@@ -31,21 +39,15 @@ const TextArea = {
      */
     extractAllUrls(
         textStr: string,
-        noProtocolJsn: NoProtocolJsnType = {
-            ip_v4: false,
-            ip_v6: false,
+        noProtocolJsn: NoProtocolJsnParamType = {
+            ipV4: false,
+            ipV6: false,
             localhost: false,
             intranet: false
         }
-    ){
-
-
+    ): IndexContainingBaseMatch[] {
         OptionalUrlPatternBuilder.setUrlPattern(noProtocolJsn);
-
-        //console.log('a : ' + Pattern.Children.url);
-
         return Service.Text.extractAllPureUrls(textStr);
-
     },
 
 
@@ -57,10 +59,8 @@ const TextArea = {
      * @param prefixSanitizer boolean (default : true)
      * @return array
      */
-    extractAllEmails(textStr: string, prefixSanitizer: boolean = true) {
-
+    extractAllEmails(textStr: string, prefixSanitizer: boolean = true): EmailMatch[] {
         return Service.Text.extractAllPureEmails(textStr, prefixSanitizer);
-
     },
 
 
@@ -78,14 +78,14 @@ const TextArea = {
      * @param endBoundary boolean (default : false)
      * @return array
      */
-    extractCertainUris(textStr: string, uris: Array<string>, endBoundary: boolean = false) {
+    extractCertainUris(textStr: string, uris: Array<Array<string>>, endBoundary: boolean = false): ExtractCertainUriMatch[] {
 
         if (!(textStr && typeof textStr === 'string')) {
             throw new Error('the variable textStr must be a string type and not be null.');
         }
 
-        let obj = Service.Text.extractCertainPureUris(textStr, uris, endBoundary);
-        let obj2 = Service.Text.extractAllPureUrls(textStr);
+        let obj: IndexContainingBaseMatch[] = Service.Text.extractCertainPureUris(textStr, uris, endBoundary);
+        let obj2: IndexContainingBaseMatch[] = Service.Text.extractAllPureUrls(textStr);
 
 
         //console.log('obj : ' + JSON.stringify(obj));
@@ -94,59 +94,49 @@ const TextArea = {
 
         for (let a = 0; a < obj.length; a++) {
 
-            let obj_part = {
-                'uri_detected': null,
-                'in_what_url': null,
+            let obj_part: ExtractCertainUriMatch = {
+                uriDetected: undefined,
+                inWhatUrl: undefined,
             };
 
             //let matchedUrlFound = false;
             for (let b = 0; b < obj2.length; b++) {
 
-                /*           console.log('obj : ' + JSON.stringify(obj[a]));
-                           console.log('obj2 : ' + JSON.stringify(obj2[b]));*/
-
-                if ((obj[a]['index']['start'] > obj2[b]['index']['start'] && obj[a]['index']['start'] < obj2[b]['index']['end'])
+                if ((obj[a].index.start > obj2[b].index.start && obj[a].index.start < obj2[b].index.end)
                     &&
-                    (obj[a]['index']['end'] > obj2[b]['index']['start'] && obj[a]['index']['end'] <= obj2[b]['index']['end'])) {
+                    (obj[a].index.end > obj2[b].index.start && obj[a].index.end <= obj2[b].index.end)) {
 
                     // Here, the uri detected is inside its url
                     // false positives like the example '//google.com/abc/def?a=5&b=7' can be detected in 'Service.Text.extractCertainPureUris'
 
-                    let sanitizedUrl = obj[a]['value']['url'];
+                    let sanitizedUrl = obj[a]['value']['url'] || "";
 
                     let rx = new RegExp('^(\\/\\/[^/]*|\\/[^\\s]+\\.' + DomainPatterns.allRootDomains + ')', 'gi');
                     let matches = [];
-                    let match = {};
+                    let match: RegExpExecArray | null;
 
-                    while ((match = rx.exec(obj[a]['value']['url'])) !== null) {
+                    while ((match = rx.exec(obj[a].value.url || "")) !== null) {
                         if (match[1]) {
 
                             sanitizedUrl = sanitizedUrl.replace(rx, '');
 
                             //console.log(match[1]);
 
-                            obj[a]['value']['url'] = sanitizedUrl;
-                            obj[a]['index']['start'] += match[1].length;
+                            obj[a].value.url = sanitizedUrl;
+                            obj[a].index.start += match[1].length;
 
-                            obj[a]['value']['onlyUriWithParams'] = obj[a]['value']['url'];
-                            obj[a]['value']['onlyUri'] = obj[a]['value']['url'].replace(/\?[^/]*$/gi, '');
+                            obj[a].value.onlyUriWithParams = obj[a].value.url;
+                            obj[a].value.onlyUri = (obj[a].value.url || "").replace(/\?[^/]*$/gi, '');
                         }
                     }
-
-
-                    obj_part.in_what_url = obj2[b];
-                    //matchedUrlFound = true;
-
+                    obj_part.inWhatUrl = obj2[b];
                 }
-
 
             }
 
-            obj_part.uri_detected = obj[a];
+            obj_part.uriDetected = obj[a];
             obj_final.push(obj_part);
-
         }
-
 
         return obj_final;
 
@@ -177,7 +167,6 @@ const UrlArea = {
      * @return array ({'url' : '', 'protocol' : '', 'onlyDomain' : '', 'onlyUriWithParams' : '', 'type' : ''})
      */
     normalizeUrl(url: string) {
-
         return Service.Url.normalizeUrl(url);
     }
 
@@ -195,20 +184,20 @@ const XmlArea = {
      * @return array
      *
      */
-    extractAllElements(xmlStr: string) {
+    extractAllElements(xmlStr: string): ElementMatch[] {
 
         if (!(xmlStr && typeof xmlStr === 'string')) {
             throw new Error('the variable xmlStr must be a string type and not be null.');
         }
 
-        const cmt_matches = Service.Xml.extractAllPureComments(xmlStr);
+        const cmtMatches = Service.Xml.extractAllPureComments(xmlStr);
 
         let matches = Service.Xml.extractAllPureElements(xmlStr);
 
 
         for (let a = 0; a < matches.length; a++) {
-            for (let i = 0; i < cmt_matches.length; i++) {
-                if (cmt_matches[i].startIndex < matches[a].startIndex && matches[a].lastIndex < cmt_matches[i].lastIndex) {
+            for (let i = 0; i < cmtMatches.length; i++) {
+                if (cmtMatches[i].startIndex < matches[a].startIndex && matches[a].lastIndex < cmtMatches[i].lastIndex) {
 
                     matches[a]['commentArea'] = true;
                     break;
@@ -271,14 +260,14 @@ const XmlArea = {
      * @param skipXml boolean (default : false)
      * @param noProtocolJsn object
      *    default :  {
-                'ip_v4' : false,
-                'ip_v6' : false,
+                'ipV4' : false,
+                'ipV6' : false,
                 'localhost' : false,
                 'intranet' : false
             }
      * @return array
      */
-    extractAllUrls(xmlStr: string, skipXml = false, noProtocolJsn: NoProtocolJsnType) {
+    extractAllUrls(xmlStr: string, skipXml = false, noProtocolJsn: NoProtocolJsnParamType): BaseMatch[] {
 
         if (!(xmlStr && typeof xmlStr === 'string')) {
             throw new Error('the variable xmlStr must be a string type and not be null.');
@@ -286,22 +275,22 @@ const XmlArea = {
 
         OptionalUrlPatternBuilder.setUrlPattern(noProtocolJsn);
 
-        let obj = [];
+        let obj : BaseMatch[] = [];
 
         if (!skipXml) {
 
-            let cmt_matches = XmlArea.extractAllComments(xmlStr);
-            let el_matches = XmlArea.extractAllElements(xmlStr);
+            let cmtMatches = XmlArea.extractAllComments(xmlStr);
+            let elMatches = XmlArea.extractAllElements(xmlStr);
 
             /* 1. comment */
-            for (let a = 0; a < cmt_matches.length; a++) {
+            for (let a = 0; a < cmtMatches.length; a++) {
 
                 let rx = new RegExp(OptionalUrlPatternBuilder.getUrl, 'gi');
 
                 let matches = [];
-                let match = {};
+                let match: RegExpExecArray | null;
 
-                while ((match = rx.exec(cmt_matches[a].value)) !== null) {
+                while ((match = rx.exec(cmtMatches[a].value)) !== null) {
 
                     /* remove email patterns related to 'all_urls3_front' regex */
                     if (/^@/.test(match[0])) {
@@ -324,14 +313,14 @@ const XmlArea = {
             }
 
             /* 2. element */
-            for (let a = 0; a < el_matches.length; a++) {
+            for (let a = 0; a < elMatches.length; a++) {
 
                 let rx = new RegExp(OptionalUrlPatternBuilder.getUrl, 'gi');
 
                 let matches = [];
-                let match = {};
+                let match: RegExpExecArray | null;
 
-                while ((match = rx.exec(el_matches[a].value)) !== null) {
+                while ((match = rx.exec(elMatches[a].value)) !== null) {
 
                     /* remove email patterns related to 'all_urls3_front' regex */
                     if (/^@/.test(match[0])) {
@@ -347,8 +336,8 @@ const XmlArea = {
 
                     obj.push({
                         'value': Service.Url.parseUrl(mod_val),
-                        'area': 'element : ' + el_matches[a].elementName
-                    });
+                        'area': 'element : ' + elMatches[a].elementName
+                    } as BaseMatch);
 
                 }
 
@@ -371,7 +360,7 @@ const XmlArea = {
         let rx = new RegExp(OptionalUrlPatternBuilder.getUrl, 'gi');
 
         let matches = [];
-        let match = {};
+        let match: RegExpExecArray | null;
 
         while ((match = rx.exec(xmlStr)) !== null) {
 
@@ -386,7 +375,7 @@ const XmlArea = {
             obj.push({
                 'value': Service.Url.parseUrl(mod_val),
                 'area': 'text'
-            });
+            } as BaseMatch);
         }
 
 
@@ -403,7 +392,7 @@ const XmlArea = {
      * @param skipXml boolean (default : false)
      * @return array
      */
-    extractAllEmails(xmlStr: string, prefixSanitizer: boolean = true, skipXml: boolean = false) {
+    extractAllEmails(xmlStr: string, prefixSanitizer: boolean = true, skipXml: boolean = false): StringValueBaseMatch[] {
 
         if (!(xmlStr && typeof xmlStr === 'string')) {
             throw new Error('the variable xmlStr must be a string type and not be null.');
@@ -433,7 +422,7 @@ const XmlArea = {
                 let rx = new RegExp(EmailPatternBuilder.getEmail, 'gi');
 
                 let matches = [];
-                let match = {};
+                let match: RegExpExecArray | null;
 
                 while ((match = rx.exec(cmt_matches[a].value)) !== null) {
 
@@ -471,7 +460,7 @@ const XmlArea = {
                     obj.push({
                         'value': mod_val,
                         'area': 'comment'
-                    });
+                    } as StringValueBaseMatch);
 
                 }
 
@@ -483,7 +472,7 @@ const XmlArea = {
                 let rx = new RegExp(EmailPatternBuilder.getEmail, 'gi');
 
                 let matches = [];
-                let match = {};
+                let match: RegExpExecArray | null;
 
                 while ((match = rx.exec(el_matches[a].value)) !== null) {
 
@@ -521,7 +510,7 @@ const XmlArea = {
                     obj.push({
                         'value': mod_val,
                         'area': 'element : ' + el_matches[a].elementName
-                    });
+                    } as StringValueBaseMatch);
 
                 }
 
@@ -540,7 +529,7 @@ const XmlArea = {
         let rx = new RegExp(EmailPatternBuilder.getEmail, 'gi');
 
         let matches = [];
-        let match = {};
+        let match: RegExpExecArray | null;
 
         while ((match = rx.exec(xmlStr)) !== null) {
 
@@ -576,7 +565,7 @@ const XmlArea = {
             obj.push({
                 'value': mod_val,
                 'area': 'text'
-            });
+            } as StringValueBaseMatch);
         }
 
         return obj;

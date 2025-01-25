@@ -19,7 +19,6 @@ const queryString = require('query-string');
 * */
 const Text = {
     extractAllPureUrls(textStr) {
-        //console.log('a : ' + Pattern.Children.url);
         if (!(textStr && typeof textStr === 'string')) {
             throw new Error('the variable textStr must be a string type and not be null.');
         }
@@ -38,7 +37,7 @@ const Text = {
             let re = Url.parseUrl(modVal);
             /* SKIP DEPENDENCY */
             if (re.onlyDomain && new RegExp('^(?:\\.|[0-9]|' + BasePatterns_1.BasePatterns.twoBytesNum + ')+$', 'i').test(re.onlyDomain)) {
-                // ip_v4 is OK
+                // ipV4 is OK
                 if (!new RegExp('^' + DomainPatterns_1.DomainPatterns.ipV4 + '$', 'i').test(re.onlyDomain)) {
                     continue;
                 }
@@ -48,11 +47,11 @@ const Text = {
                 endIdx -= re.removedTailOnUrl.length;
             }
             obj.push({
-                'value': re,
-                'area': 'text',
-                'index': {
-                    'start': startIdx,
-                    'end': endIdx
+                value: re,
+                area: 'text',
+                index: {
+                    start: startIdx,
+                    end: endIdx
                 }
             });
         }
@@ -88,17 +87,17 @@ const Text = {
         while ((match = rx.exec(textStr)) !== null) {
             let mod_val = match[0];
             obj.push({
-                'value': Url.parseUrl(mod_val),
-                'area': 'text',
-                'index': {
-                    'start': match.index,
-                    'end': match.index + match[0].length
+                value: Url.parseUrl(mod_val),
+                area: 'text',
+                index: {
+                    start: match.index,
+                    end: match.index + match[0].length
                 }
             });
         }
         return obj;
     },
-    extractAllPureEmails(textStr, final_prefixSanitizer) {
+    extractAllPureEmails(textStr, finalPrefixSanitizer) {
         if (!(textStr && typeof textStr === 'string')) {
             throw new Error('the variable textStr must be a string type and not be null.');
         }
@@ -111,13 +110,13 @@ const Text = {
             let st_idx = match.index;
             let end_idx = match.index + match[0].length;
             /* prefixSanitizer */
-            if (final_prefixSanitizer === true) {
+            if (finalPrefixSanitizer) {
                 // the 'border' is a en char that divides non-en and en areas.
                 let border = '';
                 let removedLength = 0;
                 let rx_left_plus_border = new RegExp('^([^a-zA-Z0-9]+)([a-zA-Z0-9])', '');
                 let is_mod_val_front_only_foreign_lang = true;
-                let match2 = {};
+                let match2;
                 if ((match2 = rx_left_plus_border.exec(mod_val_front)) !== null) {
                     is_mod_val_front_only_foreign_lang = false;
                     //console.log('match2:' + match2);
@@ -141,13 +140,13 @@ const Text = {
                 end_idx -= re.removedTailOnEmail.length;
             }
             obj.push({
-                'value': re,
-                'area': 'text',
-                'index': {
-                    'start': st_idx,
-                    'end': end_idx
+                value: re,
+                area: 'text',
+                index: {
+                    start: st_idx,
+                    end: end_idx
                 },
-                'pass': Email.strictTest(re.email)
+                pass: Email.strictTest(re.email)
             });
         }
         return obj;
@@ -176,7 +175,7 @@ const Url = {
             port: null
         };
         try {
-            url = valid_1.default.checkIfStrOrFailAndTrimStr(url);
+            url = valid_1.default.validateAndTrimString(url);
             /* Chapter 1. Normalizing process */
             normalizer_1.Normalizer.modifiedUrl = util_1.default.Text.removeAllSpaces(url);
             // 1. full url
@@ -184,10 +183,9 @@ const Url = {
             // 2. protocol
             obj.protocol = normalizer_1.Normalizer.extractAndNormalizeProtocolFromSpacesRemovedUrl();
             // 3. Domain
-            let typeDomain = normalizer_1.Normalizer.extractAndNormalizeDomainFromProtocolRemovedUrl();
-            obj.type = typeDomain.type;
-            obj.onlyDomain = typeDomain.domain;
-            //console.log('modified_url : ' + Normalizer.modified_url);
+            let domainWithType = normalizer_1.Normalizer.extractAndNormalizeDomainFromProtocolRemovedUrl();
+            obj.type = domainWithType.type;
+            obj.onlyDomain = domainWithType.domain;
             // 4. Port
             obj.port = normalizer_1.Normalizer.extractAndNormalizePortFromDomainRemovedUrl();
             // 5. Finalize
@@ -220,7 +218,7 @@ const Url = {
             }
             // If no uris no params, we remove suffix in case that it is a meta character.
             if (obj.onlyUri === null && obj.onlyParams === null) {
-                if (obj.type !== 'ip_v6') {
+                if (obj.type !== 'ipV6') {
                     // removedTailOnUrl
                     let rm_part_matches = obj.normalizedUrl.match(new RegExp(BasePatterns_1.BasePatterns.noLangCharNum + '+$', 'gi'));
                     if (rm_part_matches) {
@@ -350,7 +348,7 @@ const Url = {
             port: null
         };
         try {
-            url = valid_1.default.checkIfStrOrFailAndTrimStr(url);
+            url = valid_1.default.validateAndTrimString(url);
             url = util_1.default.Text.removeAllSpaces(url);
             if (!valid_1.default.isUrlPattern(url) && !valid_1.default.isUriPattern(url)) {
                 throw new Error('This is neither an url nor an uri.' + ' / Error url : ' + url);
@@ -362,7 +360,7 @@ const Url = {
             obj.url = url;
             // 2. protocol
             let rx = new RegExp('^([a-zA-Z0-9]+):');
-            let match = {};
+            let match;
             let isMatched = false;
             while ((match = rx.exec(url)) !== null) {
                 if (match[1]) {
@@ -392,7 +390,7 @@ const Url = {
             url = url.replace(/^(?:[a-zA-Z0-9]+:\/\/)/g, '');
             // 4. Separate params
             let rx3 = new RegExp('\\?(?:.|[\\s])*$', 'gi');
-            let match3 = {};
+            let match3;
             while ((match3 = rx3.exec(url)) !== null) {
                 obj.onlyParams = match3[0];
             }
@@ -436,18 +434,21 @@ const Url = {
             }
             // 8. port
             if (/:[0-9]+$/.test(url)) {
-                obj.port = url.match(/[0-9]+$/)[0];
-                url = url.replace(/:[0-9]+$/, '');
+                const portMatch = url.match(/[0-9]+$/);
+                if (portMatch) {
+                    obj.port = portMatch[0];
+                    url = url.replace(/:[0-9]+$/, '');
+                }
             }
             // 9.
             obj.onlyDomain = url;
             // 10. type : domain, ip, localhost
             if (new RegExp('^' + DomainPatterns_1.DomainPatterns.ipV4, 'i').test(url)) {
-                obj.type = 'ip_v4';
+                obj.type = 'ipV4';
             }
             else if (new RegExp('^' + DomainPatterns_1.DomainPatterns.ipV6, 'i').test(url)) {
                 //console.log('r : ' + url);
-                obj.type = 'ip_v6';
+                obj.type = 'ipV6';
             }
             else if (/^localhost/i.test(url)) {
                 obj.type = 'localhost';
@@ -458,7 +459,7 @@ const Url = {
             // If no uris no params, we remove suffix in case that it is a meta character.
             if (obj.onlyUri === null && obj.onlyParams === null) {
                 if (obj.url) {
-                    if (obj.type !== 'ip_v6') {
+                    if (obj.type !== 'ipV6') {
                         // removedTailOnUrl
                         let rm_part_matches = obj.url.match(new RegExp(BasePatterns_1.BasePatterns.noLangCharNum + '+$', 'gi'));
                         if (rm_part_matches) {
@@ -587,25 +588,25 @@ const Email = {
             type: null
         };
         try {
-            email = valid_1.default.checkIfStrOrFailAndTrimStr(email);
+            email = valid_1.default.validateAndTrimString(email);
             email = util_1.default.Text.removeAllSpaces(email);
             if (!valid_1.default.isEmailPattern(email)) {
                 throw new Error('This is not an email pattern');
             }
             obj.email = email;
             if (new RegExp('@' + BasePatterns_1.BasePatterns.everything + '*' + DomainPatterns_1.DomainPatterns.ipV4, 'i').test(email)) {
-                obj.type = 'ip_v4';
+                obj.type = 'ipV4';
             }
             else if (new RegExp('@' + BasePatterns_1.BasePatterns.everything + '*' + DomainPatterns_1.DomainPatterns.ipV6, 'i').test(email)) {
                 //console.log('r : ' + url);
-                obj.type = 'ip_v6';
+                obj.type = 'ipV6';
             }
             else {
                 obj.type = 'domain';
             }
             // If no uris no params, we remove suffix in case that it is a meta character.
             if (obj.email) {
-                if (obj.type !== 'ip_v6') {
+                if (obj.type !== 'ipV6') {
                     // removedTailOnUrl
                     let rm_part_matches = obj.email.match(new RegExp(BasePatterns_1.BasePatterns.noLangCharNum + '+$', 'gi'));
                     if (rm_part_matches) {

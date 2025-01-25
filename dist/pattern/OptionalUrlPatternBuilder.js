@@ -42,11 +42,11 @@ class OptionalUrlPatternBuilder {
                 valid_1.default.checkIfProtocolJsnObjOrFail(noProtocolJsn);
                 let is_p = true;
                 let no_p = "";
-                if (noProtocolJsn.ip_v4) {
+                if (noProtocolJsn.ipV4) {
                     no_p = DomainPatterns_1.DomainPatterns.ipV4 + "|";
                     is_p = false;
                 }
-                if (noProtocolJsn.ip_v6) {
+                if (noProtocolJsn.ipV6) {
                     no_p += DomainPatterns_1.DomainPatterns.ipV6 + "|";
                     is_p = false;
                 }

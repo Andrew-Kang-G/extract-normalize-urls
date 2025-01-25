@@ -1,17 +1,11 @@
 import {TextArea, UrlArea} from "../src/entry";
 
 const assert = require('assert');
-/*function test(title, testCode) {
-    try {
-        testCode();
-    } catch (error) {
-        console.error(error);
-    }
-}*/
 
-function expect(result) {
+
+function expect(result: string | null) {
     return {
-        toBe: function(expected) {
+        toBe: function(expected: string | null) {
             if (result !== expected) {
                 throw new Error(result + ' is not equal to ' + expected);
             }
@@ -19,14 +13,7 @@ function expect(result) {
     }
 }
 
-/*test('', function() {
-    expect(UrlArea.normalizeUrl("htp/:/abcgermany.,def;:9094 #park//noon??abc=retry")["normalizedUrl"])
-        .toBe("http://abcgermany.de:9094#park/noon?abc=retry")
-    ;
-
-});*/
-
-describe('BDD style', function() {
+describe('BDD style (URL,EMAIL)', function() {
     before(function() {
         // excuted before test suite
     });
@@ -34,7 +21,6 @@ describe('BDD style', function() {
     after(function() {
         // excuted after test suite
     });
-
 
     describe('UrlArea', function() {
         it('normalizeUrl', function() {
@@ -71,7 +57,7 @@ describe('BDD style', function() {
                         "onlyUri": null,
                         "onlyUriWithParams": null,
                         "onlyParamsJsn": null,
-                        "type": "ip_v6",
+                        "type": "ipV6",
                         "port": "8000"
                     },
                     "area": "text",
@@ -271,7 +257,7 @@ describe('BDD style', function() {
                         "onlyUri": null,
                         "onlyUriWithParams": null,
                         "onlyParamsJsn": null,
-                        "type": "ip_v4",
+                        "type": "ipV4",
                         "port": "8080"
                     },
                     "area": "text",
@@ -325,7 +311,7 @@ describe('BDD style', function() {
         });
 
         it('extractAllUrlsWithIntranets', function() {
-            assert.deepEqual(TextArea.extractAllUrls(textStr, {ip_v4 : false, ip_v6 :false, localhost : false,  intranet : true}), [
+            assert.deepEqual(TextArea.extractAllUrls(textStr, {ipV4 : false, ipV6 :false, localhost : false,  intranet : true}), [
                 {
                     "value": {
                         "url": "http://[::1]:8000",
@@ -336,7 +322,7 @@ describe('BDD style', function() {
                         "onlyUri": null,
                         "onlyUriWithParams": null,
                         "onlyParamsJsn": null,
-                        "type": "ip_v6",
+                        "type": "ipV6",
                         "port": "8000"
                     },
                     "area": "text",
@@ -557,7 +543,7 @@ describe('BDD style', function() {
                         "onlyUri": null,
                         "onlyUriWithParams": null,
                         "onlyParamsJsn": null,
-                        "type": "ip_v4",
+                        "type": "ipV4",
                         "port": "8080"
                     },
                     "area": "text",
@@ -719,5 +705,237 @@ describe('BDD style', function() {
         })
 
 
+    });
+});
+
+describe('BDD style (URI)', function() {
+    const sampleText2 = 'https://google.com/abc/777?a=5&b=7 abc/def 333/kak abc/55에서 abc/53 abc/533/ka abc/53a/ka /123a/abc/556/dd /abc/123?a=5&b=tkt /xyj/asff' +
+        'a333/kak  nice/guy/ bad/or/nice/guy ssh://nice.guy.com/?a=dkdfl';
+
+    /**
+     * @brief
+     * Distill URIs with certain names from normal text
+     * @author Andrew Kang
+     * @param textStr string required
+     * @param uris array required
+     * for example, [['a','b'], ['c','d']]
+     * If you use {number}, this means 'only number' ex) [['a','{number}'], ['c','d']]
+     * @param endBoundary boolean (default : false)
+     * @return array
+     */
+    it('extractCertainUris', function() {
+        const uris = TextArea.extractCertainUris(
+            sampleText2,
+            [['{number}', 'kak'], ['nice', 'guy'], ['abc', '{number}']],
+            true
+        );
+
+        console.log(uris);
+
+        assert.deepEqual(uris, [
+            {
+                "uriDetected": {
+                    "value": {
+                        "url": "/abc/777?a=5&b=7",
+                        "removedTailOnUrl": "",
+                        "protocol": null,
+                        "onlyDomain": "",
+                        "onlyParams": "?a=5&b=7",
+                        "onlyUri": "/abc/777",
+                        "onlyUriWithParams": "/abc/777?a=5&b=7",
+                        "onlyParamsJsn": {
+                            "a": "5",
+                            "b": "7"
+                        },
+                        "type": "domain",
+                        "port": null
+                    },
+                    "area": "text",
+                    "index": {
+                        "start": 18,
+                        "end": 34
+                    }
+                },
+                "inWhatUrl": {
+                    "value": {
+                        "url": "https://google.com/abc/777?a=5&b=7",
+                        "removedTailOnUrl": "",
+                        "protocol": "https",
+                        "onlyDomain": "google.com",
+                        "onlyParams": "?a=5&b=7",
+                        "onlyUri": "/abc/777",
+                        "onlyUriWithParams": "/abc/777?a=5&b=7",
+                        "onlyParamsJsn": {
+                            "a": "5",
+                            "b": "7"
+                        },
+                        "type": "domain",
+                        "port": null
+                    },
+                    "area": "text",
+                    "index": {
+                        "start": 0,
+                        "end": 34
+                    }
+                }
+            },
+            {
+                "uriDetected": {
+                    "value": {
+                        "url": "333/kak",
+                        "removedTailOnUrl": "",
+                        "protocol": null,
+                        "onlyDomain": null,
+                        "onlyParams": null,
+                        "onlyUri": "333/kak",
+                        "onlyUriWithParams": "333/kak",
+                        "onlyParamsJsn": null,
+                        "type": "uri",
+                        "port": null
+                    },
+                    "area": "text",
+                    "index": {
+                        "start": 43,
+                        "end": 51
+                    }
+                },
+                "inWhatUrl": undefined
+            },
+            {
+                "uriDetected": {
+                    "value": {
+                        "url": "abc/53",
+                        "removedTailOnUrl": "",
+                        "protocol": null,
+                        "onlyDomain": null,
+                        "onlyParams": null,
+                        "onlyUri": "abc/53",
+                        "onlyUriWithParams": "abc/53",
+                        "onlyParamsJsn": null,
+                        "type": "uri",
+                        "port": null
+                    },
+                    "area": "text",
+                    "index": {
+                        "start": 60,
+                        "end": 67
+                    }
+                },
+                "inWhatUrl": undefined
+            },
+            {
+                "uriDetected": {
+                    "value": {
+                        "url": "abc/533/ka",
+                        "removedTailOnUrl": "",
+                        "protocol": null,
+                        "onlyDomain": null,
+                        "onlyParams": null,
+                        "onlyUri": "abc/533/ka",
+                        "onlyUriWithParams": "abc/533/ka",
+                        "onlyParamsJsn": null,
+                        "type": "uri",
+                        "port": null
+                    },
+                    "area": "text",
+                    "index": {
+                        "start": 67,
+                        "end": 77
+                    }
+                },
+                "inWhatUrl": undefined
+            },
+            {
+                "uriDetected": {
+                    "value": {
+                        "url": "/123a/abc/556/dd",
+                        "removedTailOnUrl": "",
+                        "protocol": null,
+                        "onlyDomain": null,
+                        "onlyParams": null,
+                        "onlyUri": "/123a/abc/556/dd",
+                        "onlyUriWithParams": "/123a/abc/556/dd",
+                        "onlyParamsJsn": null,
+                        "type": "uri",
+                        "port": null
+                    },
+                    "area": "text",
+                    "index": {
+                        "start": 89,
+                        "end": 105
+                    }
+                },
+                "inWhatUrl": null
+            },
+            {
+                "uriDetected": {
+                    "value": {
+                        "url": "/abc/123?a=5&b=tkt",
+                        "removedTailOnUrl": "",
+                        "protocol": null,
+                        "onlyDomain": null,
+                        "onlyParams": "?a=5&b=tkt",
+                        "onlyUri": "/abc/123",
+                        "onlyUriWithParams": "/abc/123?a=5&b=tkt",
+                        "onlyParamsJsn": {
+                            "a": "5",
+                            "b": "tkt"
+                        },
+                        "type": "uri",
+                        "port": null
+                    },
+                    "area": "text",
+                    "index": {
+                        "start": 106,
+                        "end": 124
+                    }
+                },
+                "inWhatUrl": undefined
+            },
+            {
+                "uriDetected": {
+                    "value": {
+                        "url": "nice/guy",
+                        "removedTailOnUrl": "/",
+                        "protocol": null,
+                        "onlyDomain": null,
+                        "onlyParams": null,
+                        "onlyUri": "nice/guy",
+                        "onlyUriWithParams": "nice/guy",
+                        "onlyParamsJsn": null,
+                        "type": "uri",
+                        "port": null
+                    },
+                    "area": "text",
+                    "index": {
+                        "start": 144,
+                        "end": 153
+                    }
+                },
+                "inWhatUrl": undefined
+            },
+            {
+                "uriDetected": {
+                    "value": {
+                        "url": "/or/nice/guy",
+                        "removedTailOnUrl": "",
+                        "protocol": null,
+                        "onlyDomain": null,
+                        "onlyParams": null,
+                        "onlyUri": "/or/nice/guy",
+                        "onlyUriWithParams": "/or/nice/guy",
+                        "onlyParamsJsn": null,
+                        "type": "uri",
+                        "port": null
+                    },
+                    "area": "text",
+                    "index": {
+                        "start": 157,
+                        "end": 170
+                    }
+                },
+                "inWhatUrl": undefined
+            }
+        ]);
     });
 });

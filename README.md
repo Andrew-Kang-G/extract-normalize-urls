@@ -156,15 +156,15 @@ var url = Pattern.UrlArea.parseUrl("xtp://gooppalgo.com/park/tree/?abc=1")
        * @param textStr string required
        * @param noProtocolJsn object
        *    default :  {
-                  'ip_v4' : false,
-                  'ip_v6' : false,
+                  'ipV4' : false,
+                  'ipV6' : false,
                   'localhost' : false,
                   'intranet' : false
               }
         
   var urls = Pattern.TextArea.extractAllUrls(textStr, {
-                     'ip_v4' : true,
-                     'ip_v6' : false,
+                     'ipV4' : true,
+                     'ipV6' : false,
                      'localhost' : false,
                      'intranet' : true
  })
@@ -222,8 +222,8 @@ var url = Pattern.UrlArea.parseUrl("xtp://gooppalgo.com/park/tree/?abc=1")
 
 ``` javascript
 
-var sampleText = 'https://google.com/abc/777?a=5&b=7 abc/def 333/kak abc/55ÏóêÏÑú abc/53 abc/53a/ka /123a/abc/556/dd /abc/123?a=5&b=tkt /xyj/asff' +
-               'a333/kak  nice/guy/ bad/or/nice/guy ssh://nice.guy.com/?a=dkdfl';
+var sampleText = 'https://google.com/abc/777?a=5&b=7 abc/def 333/kak abc/55ÏóêÏÑú abc/53 abc/533/ka abc/53a/ka /123a/abc/556/dd /abc/123?a=5&b=tkt /xyj/asff' +
+        'a333/kak  nice/guy/ bad/or/nice/guy ssh://nice.guy.com/?a=dkdfl';
  
     /**
      * @brief
@@ -247,7 +247,7 @@ var sampleText = 'https://google.com/abc/777?a=5&b=7 abc/def 333/kak abc/55ÏóêÏÑ
  ``` javascript
 [
   {
-    "uri_detected": {
+    "uriDetected": {
       "value": {
         "url": "/abc/777?a=5&b=7",
         "removedTailOnUrl": "",
@@ -269,7 +269,7 @@ var sampleText = 'https://google.com/abc/777?a=5&b=7 abc/def 333/kak abc/55ÏóêÏÑ
         "end": 34
       }
     },
-    "in_what_url": {
+    "inWhatUrl": {
       "value": {
         "url": "https://google.com/abc/777?a=5&b=7",
         "removedTailOnUrl": "",
@@ -293,7 +293,7 @@ var sampleText = 'https://google.com/abc/777?a=5&b=7 abc/def 333/kak abc/55ÏóêÏÑ
     }
   },
   {
-    "uri_detected": {
+    "uriDetected": {
       "value": {
         "url": "333/kak",
         "removedTailOnUrl": "",
@@ -312,10 +312,10 @@ var sampleText = 'https://google.com/abc/777?a=5&b=7 abc/def 333/kak abc/55ÏóêÏÑ
         "end": 51
       }
     },
-    "in_what_url": null
+    "inWhatUrl": undefined
   },
   {
-    "uri_detected": {
+    "uriDetected": {
       "value": {
         "url": "abc/53",
         "removedTailOnUrl": "",
@@ -334,10 +334,10 @@ var sampleText = 'https://google.com/abc/777?a=5&b=7 abc/def 333/kak abc/55ÏóêÏÑ
         "end": 67
       }
     },
-    "in_what_url": null
+    "inWhatUrl": undefined
   },
   {
-    "uri_detected": {
+    "uriDetected": {
       "value": {
         "url": "abc/533/ka",
         "removedTailOnUrl": "",
@@ -356,10 +356,10 @@ var sampleText = 'https://google.com/abc/777?a=5&b=7 abc/def 333/kak abc/55ÏóêÏÑ
         "end": 77
       }
     },
-    "in_what_url": null
+    "inWhatUrl": undefined
   },
   {
-    "uri_detected": {
+    "uriDetected": {
       "value": {
         "url": "/123a/abc/556/dd",
         "removedTailOnUrl": "",
@@ -378,10 +378,10 @@ var sampleText = 'https://google.com/abc/777?a=5&b=7 abc/def 333/kak abc/55ÏóêÏÑ
         "end": 105
       }
     },
-    "in_what_url": null
+    "inWhatUrl": undefined
   },
   {
-    "uri_detected": {
+    "uriDetected": {
       "value": {
         "url": "/abc/123?a=5&b=tkt",
         "removedTailOnUrl": "",
@@ -403,10 +403,10 @@ var sampleText = 'https://google.com/abc/777?a=5&b=7 abc/def 333/kak abc/55ÏóêÏÑ
         "end": 124
       }
     },
-    "in_what_url": null
+    "inWhatUrl": undefined
   },
   {
-    "uri_detected": {
+    "uriDetected": {
       "value": {
         "url": "nice/guy",
         "removedTailOnUrl": "/",
@@ -425,10 +425,10 @@ var sampleText = 'https://google.com/abc/777?a=5&b=7 abc/def 333/kak abc/55ÏóêÏÑ
         "end": 153
       }
     },
-    "in_what_url": null
+    "inWhatUrl": undefined
   },
   {
-    "uri_detected": {
+    "uriDetected": {
       "value": {
         "url": "/or/nice/guy",
         "removedTailOnUrl": "",
@@ -447,7 +447,7 @@ var sampleText = 'https://google.com/abc/777?a=5&b=7 abc/def 333/kak abc/55ÏóêÏÑ
         "end": 170
       }
     },
-    "in_what_url": null
+    "inWhatUrl": null
   }
 ]
 ```

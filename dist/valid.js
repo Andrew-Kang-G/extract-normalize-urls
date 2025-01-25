@@ -1,13 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-/*
-*     Private : Validation Check
-* */
 const OptionalUrlPatternBuilder_1 = require("./pattern/OptionalUrlPatternBuilder");
 const UriPatterns_1 = require("./pattern/UriPatterns");
 const EmailPatternBuilder_1 = require("./pattern/EmailPatternBuilder");
+/*
+*    The statement "typeof sth === 'string'" may be considered unnecessary in TypeScript; however, I included it because this library is intended for use in a bundled JavaScript file.
+* */
 const Valid = {
-    checkIfStrOrFailAndTrimStr(sth) {
+    validateAndTrimString(sth) {
         if (!(sth && typeof sth === 'string')) {
             throw new Error('the variable url must be a string type and not be null.');
         }
@@ -27,13 +27,13 @@ const Valid = {
     },
     checkIfProtocolJsnObjOrFail(noProtocolJsn) {
         if (!(noProtocolJsn && typeof noProtocolJsn === 'object' &&
-            noProtocolJsn.hasOwnProperty('ip_v4') && typeof noProtocolJsn.ip_v4 === 'boolean' &&
-            noProtocolJsn.hasOwnProperty('ip_v6') && typeof noProtocolJsn.ip_v6 === 'boolean' &&
+            noProtocolJsn.hasOwnProperty('ipV4') && typeof noProtocolJsn.ipV4 === 'boolean' &&
+            noProtocolJsn.hasOwnProperty('ipV6') && typeof noProtocolJsn.ipV6 === 'boolean' &&
             noProtocolJsn.hasOwnProperty('localhost') && typeof noProtocolJsn.localhost === 'boolean' &&
             noProtocolJsn.hasOwnProperty('intranet') && typeof noProtocolJsn.intranet === 'boolean')) {
             throw new Error('Not a "noProtocolJsn{' +
-                '\'ip_v4\' : [boolean],' +
-                '\'ip_v6\' : [boolean],' +
+                '\'ipV4\' : [boolean],' +
+                '\'ipV6\' : [boolean],' +
                 '\'localhost\' : [boolean],' +
                 '\'intranet\' : [boolean]' +
                 '}" object');
