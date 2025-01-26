@@ -17,7 +17,7 @@ For ES5 users,
        <body>
        	<script src="../dist/url-knife.bundle.js"></script>
         <--! OR !-->
-       	<script src="https://cdn.jsdelivr.net/gh/patternknife/url-knife@4.1.2/dist/url-knife.bundle.min.js"></script>
+       	<script src="https://cdn.jsdelivr.net/gh/patternknife/url-knife@4.1.3/dist/url-knife.bundle.min.js"></script>
        	
        	<script type="text/javascript">
        	</script>
