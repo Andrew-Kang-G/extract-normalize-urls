@@ -3,5 +3,5 @@ import {UrlAreaApi} from "./api/UrlAreaApi";
 import {XmlAreaApi} from "./api/XmlAreaApi";
 
 export  {
-    TextAreaApi, UrlAreaApi, XmlAreaApi
+    TextAreaApi as TextArea, UrlAreaApi as UrlArea, XmlAreaApi as XmlArea
 };
