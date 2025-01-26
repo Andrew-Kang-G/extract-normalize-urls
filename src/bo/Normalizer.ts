@@ -1,10 +1,10 @@
-import Util from "./util";
+import Util from "../util";
 
-import {FuzzyPartialUrlPatterns} from "./pattern/FuzzyPartialUrlPatterns";
-import {BasePatterns} from "./pattern/BasePatterns";
-import {ProtocolPatterns} from "./pattern/ProtocolPatterns";
-import {NormalizerType} from "./types";
-import {DomainPatterns} from "./pattern/DomainPatterns";
+import {FuzzyPartialUrlPatterns} from "../pattern/FuzzyPartialUrlPatterns";
+import {BasePatterns} from "../pattern/BasePatterns";
+import {ProtocolPatterns} from "../pattern/ProtocolPatterns";
+import {NormalizerType} from "../types";
+import {DomainPatterns} from "../pattern/DomainPatterns";
 
 export const Normalizer: NormalizerType  = {
 

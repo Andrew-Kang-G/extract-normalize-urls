@@ -7,6 +7,9 @@ const EmailPatternBuilder_1 = require("../pattern/EmailPatternBuilder");
 const BasePatterns_1 = require("../pattern/BasePatterns");
 const XmlAreaService_1 = require("../service/XmlAreaService");
 const UrlAreaService_1 = require("../service/UrlAreaService");
+/*
+*   The XmlArea should be refactored, and text codes should be included.
+* */
 exports.XmlAreaApi = {
     /**
      *

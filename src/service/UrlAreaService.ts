@@ -1,11 +1,12 @@
 import {NormalizerType, ParsedUrlType, ParsedUrlWithNormalizationType} from "../types";
 import Valid from "../valid";
-import {Normalizer} from "../normalizer";
+
 import Util from "../util";
 import {BasePatterns} from "../pattern/BasePatterns";
 import {ProtocolPatterns} from "../pattern/ProtocolPatterns";
 import {DomainPatterns} from "../pattern/DomainPatterns";
 import {SafeConditionalUrlPatternBuilder} from "../pattern/SafeConditionalUrlPatternBuilder";
+import {Normalizer} from "../bo/Normalizer";
 
 const queryString = require('query-string');
 

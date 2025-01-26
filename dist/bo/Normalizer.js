@@ -4,11 +4,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Normalizer = void 0;
-const util_1 = __importDefault(require("./util"));
-const FuzzyPartialUrlPatterns_1 = require("./pattern/FuzzyPartialUrlPatterns");
-const BasePatterns_1 = require("./pattern/BasePatterns");
-const ProtocolPatterns_1 = require("./pattern/ProtocolPatterns");
-const DomainPatterns_1 = require("./pattern/DomainPatterns");
+const util_1 = __importDefault(require("../util"));
+const FuzzyPartialUrlPatterns_1 = require("../pattern/FuzzyPartialUrlPatterns");
+const BasePatterns_1 = require("../pattern/BasePatterns");
+const ProtocolPatterns_1 = require("../pattern/ProtocolPatterns");
+const DomainPatterns_1 = require("../pattern/DomainPatterns");
 exports.Normalizer = {
     modifiedUrl: null,
     extractAndNormalizeProtocolFromSpacesRemovedUrl() {

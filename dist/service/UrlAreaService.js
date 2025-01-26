@@ -5,12 +5,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UrlAreaService = void 0;
 const valid_1 = __importDefault(require("../valid"));
-const normalizer_1 = require("../normalizer");
 const util_1 = __importDefault(require("../util"));
 const BasePatterns_1 = require("../pattern/BasePatterns");
 const ProtocolPatterns_1 = require("../pattern/ProtocolPatterns");
 const DomainPatterns_1 = require("../pattern/DomainPatterns");
 const SafeConditionalUrlPatternBuilder_1 = require("../pattern/SafeConditionalUrlPatternBuilder");
+const Normalizer_1 = require("../bo/Normalizer");
 const queryString = require('query-string');
 exports.UrlAreaService = {
     /**
@@ -37,21 +37,21 @@ exports.UrlAreaService = {
         try {
             url = valid_1.default.validateAndTrimString(url);
             /* Chapter 1. Normalizing process */
-            normalizer_1.Normalizer.modifiedUrl = util_1.default.Text.removeAllSpaces(url);
+            Normalizer_1.Normalizer.modifiedUrl = util_1.default.Text.removeAllSpaces(url);
             // 1. full url
             obj.url = url;
             // 2. protocol
-            obj.protocol = normalizer_1.Normalizer.extractAndNormalizeProtocolFromSpacesRemovedUrl();
+            obj.protocol = Normalizer_1.Normalizer.extractAndNormalizeProtocolFromSpacesRemovedUrl();
             // 3. Domain
-            let domainWithType = normalizer_1.Normalizer.extractAndNormalizeDomainFromProtocolRemovedUrl();
+            let domainWithType = Normalizer_1.Normalizer.extractAndNormalizeDomainFromProtocolRemovedUrl();
             obj.type = domainWithType.type;
             obj.onlyDomain = domainWithType.domain;
             // 4. Port
-            obj.port = normalizer_1.Normalizer.extractAndNormalizePortFromDomainRemovedUrl();
+            obj.port = Normalizer_1.Normalizer.extractAndNormalizePortFromDomainRemovedUrl();
             // 5. Finalize
-            obj.normalizedUrl = normalizer_1.Normalizer.finalizeNormalization(obj.protocol, obj.port, obj.onlyDomain);
+            obj.normalizedUrl = Normalizer_1.Normalizer.finalizeNormalization(obj.protocol, obj.port, obj.onlyDomain);
             // 6. Params & URI
-            let uriParams = normalizer_1.Normalizer.extractAndNormalizeUriParamsFromPortRemovedUrl();
+            let uriParams = Normalizer_1.Normalizer.extractAndNormalizeUriParamsFromPortRemovedUrl();
             obj.onlyUri = uriParams.uri;
             obj.onlyParams = uriParams.params;
             /* Chapter 2. Post normalizing process  (same as the function 'parseUrl')*/

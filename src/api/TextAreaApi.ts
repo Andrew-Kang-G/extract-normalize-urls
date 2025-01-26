@@ -1,8 +1,7 @@
 import {EmailMatch, ExtractCertainUriMatch, IndexContainingBaseMatch, NoProtocolJsnParamType} from "../types";
 import {SafeConditionalUrlPatternBuilder} from "../pattern/SafeConditionalUrlPatternBuilder";
-
-import {DomainPatterns} from "../pattern/DomainPatterns";
 import {TextAreaService} from "../service/TextAreaService";
+import {processAllUriMatches} from "../bo/UriMatchProcessor";
 
 export const TextAreaApi = {
 
@@ -69,61 +68,10 @@ export const TextAreaApi = {
             throw new Error('the variable textStr must be a string type and not be null.');
         }
 
-        let obj: IndexContainingBaseMatch[] = TextAreaService.extractCertainPureUris(textStr, uris, endBoundary);
-        let obj2: IndexContainingBaseMatch[] = TextAreaService.extractAllPureUrls(textStr);
+        let uriMatchList: IndexContainingBaseMatch[] = TextAreaService.extractCertainPureUris(textStr, uris, endBoundary);
+        let urlMatchList: IndexContainingBaseMatch[] = TextAreaService.extractAllPureUrls(textStr);
 
-
-        //console.log('obj : ' + JSON.stringify(obj));
-
-        let obj_final = [];
-
-        for (let a = 0; a < obj.length; a++) {
-
-            let obj_part: ExtractCertainUriMatch = {
-                uriDetected: undefined,
-                inWhatUrl: undefined,
-            };
-
-            //let matchedUrlFound = false;
-            for (let b = 0; b < obj2.length; b++) {
-
-                if ((obj[a].index.start > obj2[b].index.start && obj[a].index.start < obj2[b].index.end)
-                    &&
-                    (obj[a].index.end > obj2[b].index.start && obj[a].index.end <= obj2[b].index.end)) {
-
-                    // Here, the uri detected is inside its url
-                    // false positives like the example '//google.com/abc/def?a=5&b=7' can be detected in 'Service.Text.extractCertainPureUris'
-
-                    let sanitizedUrl = obj[a]['value']['url'] || "";
-
-                    let rx = new RegExp('^(\\/\\/[^/]*|\\/[^\\s]+\\.' + DomainPatterns.allRootDomains + ')', 'gi');
-                    let matches = [];
-                    let match: RegExpExecArray | null;
-
-                    while ((match = rx.exec(obj[a].value.url || "")) !== null) {
-                        if (match[1]) {
-
-                            sanitizedUrl = sanitizedUrl.replace(rx, '');
-
-                            //console.log(match[1]);
-
-                            obj[a].value.url = sanitizedUrl;
-                            obj[a].index.start += match[1].length;
-
-                            obj[a].value.onlyUriWithParams = obj[a].value.url;
-                            obj[a].value.onlyUri = (obj[a].value.url || "").replace(/\?[^/]*$/gi, '');
-                        }
-                    }
-                    obj_part.inWhatUrl = obj2[b];
-                }
-
-            }
-
-            obj_part.uriDetected = obj[a];
-            obj_final.push(obj_part);
-        }
-
-        return obj_final;
+        return processAllUriMatches(uriMatchList, urlMatchList);
 
     },
 

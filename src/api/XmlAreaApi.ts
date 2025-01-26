@@ -6,6 +6,9 @@ import {BasePatterns} from "../pattern/BasePatterns";
 import {XmlAreaService} from "../service/XmlAreaService";
 import {UrlAreaService} from "../service/UrlAreaService";
 
+/*
+*   The XmlArea should be refactored, and text codes should be included.
+* */
 export const XmlAreaApi = {
 
 
