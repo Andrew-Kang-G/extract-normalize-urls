@@ -13,16 +13,16 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-var _a, _OptionalUrlPatternBuilder__url;
+var _a, _SafeConditionalUrlPatternBuilder__url;
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.OptionalUrlPatternBuilder = void 0;
+exports.SafeConditionalUrlPatternBuilder = void 0;
 const UrlPatterns_1 = require("./UrlPatterns");
 const valid_1 = __importDefault(require("../valid"));
 const DomainPatterns_1 = require("./DomainPatterns");
 const ProtocolPatterns_1 = require("./ProtocolPatterns");
 const PortPatterns_1 = require("./PortPatterns");
 const ParamsPatterns_1 = require("./ParamsPatterns");
-class OptionalUrlPatternBuilder {
+class SafeConditionalUrlPatternBuilder {
     // 1. URL
     static setUrlPattern(noProtocolJsn) {
         this.url = noProtocolJsn;
@@ -61,7 +61,7 @@ class OptionalUrlPatternBuilder {
                 no_p = no_p.replace(/\|$/, "");
                 no_p = "(?:" + no_p + ")";
                 if (is_p) {
-                    __classPrivateFieldSet(this, _a, this.p, "f", _OptionalUrlPatternBuilder__url);
+                    __classPrivateFieldSet(this, _a, this.p, "f", _SafeConditionalUrlPatternBuilder__url);
                 }
                 else {
                     __classPrivateFieldSet(this, _a, this.p +
@@ -71,27 +71,27 @@ class OptionalUrlPatternBuilder {
                         // port or not
                         PortPatterns_1.PortPatterns.optionalPort +
                         // uri, params or not
-                        ParamsPatterns_1.ParamsPatterns.optionalUrlParams, "f", _OptionalUrlPatternBuilder__url);
+                        ParamsPatterns_1.ParamsPatterns.optionalUrlParams, "f", _SafeConditionalUrlPatternBuilder__url);
                 }
             }
             catch (e) {
                 console.log(e);
-                __classPrivateFieldSet(this, _a, this.p, "f", _OptionalUrlPatternBuilder__url);
+                __classPrivateFieldSet(this, _a, this.p, "f", _SafeConditionalUrlPatternBuilder__url);
             }
         }
         else {
-            __classPrivateFieldSet(this, _a, this.p, "f", _OptionalUrlPatternBuilder__url);
+            __classPrivateFieldSet(this, _a, this.p, "f", _SafeConditionalUrlPatternBuilder__url);
         }
     }
     static get getUrl() {
-        if (!__classPrivateFieldGet(this, _a, "f", _OptionalUrlPatternBuilder__url)) {
+        if (!__classPrivateFieldGet(this, _a, "f", _SafeConditionalUrlPatternBuilder__url)) {
             return this.p;
         }
         else {
-            return __classPrivateFieldGet(this, _a, "f", _OptionalUrlPatternBuilder__url);
+            return __classPrivateFieldGet(this, _a, "f", _SafeConditionalUrlPatternBuilder__url);
         }
     }
 }
-exports.OptionalUrlPatternBuilder = OptionalUrlPatternBuilder;
-_a = OptionalUrlPatternBuilder;
-_OptionalUrlPatternBuilder__url = { value: void 0 };
+exports.SafeConditionalUrlPatternBuilder = SafeConditionalUrlPatternBuilder;
+_a = SafeConditionalUrlPatternBuilder;
+_SafeConditionalUrlPatternBuilder__url = { value: void 0 };

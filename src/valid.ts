@@ -1,4 +1,4 @@
-import {OptionalUrlPatternBuilder} from "./pattern/OptionalUrlPatternBuilder";
+import {SafeConditionalUrlPatternBuilder} from "./pattern/SafeConditionalUrlPatternBuilder";
 import {UriPatterns} from "./pattern/UriPatterns";
 import {EmailPatternBuilder} from "./pattern/EmailPatternBuilder";
 import {NoProtocolJsnParamType} from "./types";
@@ -25,7 +25,7 @@ const Valid = {
     },
 
     isUrlPattern(v: string) {
-        return new RegExp('^' + OptionalUrlPatternBuilder.getUrl, 'gi').test(v);
+        return new RegExp('^' + SafeConditionalUrlPatternBuilder.getUrl, 'gi').test(v);
     },
     isUriPattern(v: string) {
         return new RegExp('^' + UriPatterns.allUris, 'gi').test(v);

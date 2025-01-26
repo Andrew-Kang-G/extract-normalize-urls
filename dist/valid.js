@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const OptionalUrlPatternBuilder_1 = require("./pattern/OptionalUrlPatternBuilder");
+const SafeConditionalUrlPatternBuilder_1 = require("./pattern/SafeConditionalUrlPatternBuilder");
 const UriPatterns_1 = require("./pattern/UriPatterns");
 const EmailPatternBuilder_1 = require("./pattern/EmailPatternBuilder");
 /*
@@ -17,7 +17,7 @@ const Valid = {
         return sth;
     },
     isUrlPattern(v) {
-        return new RegExp('^' + OptionalUrlPatternBuilder_1.OptionalUrlPatternBuilder.getUrl, 'gi').test(v);
+        return new RegExp('^' + SafeConditionalUrlPatternBuilder_1.SafeConditionalUrlPatternBuilder.getUrl, 'gi').test(v);
     },
     isUriPattern(v) {
         return new RegExp('^' + UriPatterns_1.UriPatterns.allUris, 'gi').test(v);

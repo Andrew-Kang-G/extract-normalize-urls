@@ -7,7 +7,7 @@ import {ParamsPatterns} from "./ParamsPatterns";
 import {NoProtocolJsnParamType} from "../types";
 
 
-export class OptionalUrlPatternBuilder{
+export class SafeConditionalUrlPatternBuilder {
 
     static #_url: string;
 

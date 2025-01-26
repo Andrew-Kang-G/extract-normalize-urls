@@ -1,4 +1,7 @@
-import { TextArea, UrlArea, XmlArea } from './controller';
+import {TextAreaApi} from "./api/TextAreaApi";
+import {UrlAreaApi} from "./api/UrlAreaApi";
+import {XmlAreaApi} from "./api/XmlAreaApi";
+
 export  {
-    TextArea, UrlArea, XmlArea
+    TextAreaApi, UrlAreaApi, XmlAreaApi
 };

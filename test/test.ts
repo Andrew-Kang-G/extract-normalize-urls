@@ -1,4 +1,4 @@
-import {TextArea, UrlArea} from "../src/entry";
+import {TextAreaApi, UrlAreaApi} from "../src/entry";
 
 const assert = require('assert');
 
@@ -24,11 +24,11 @@ describe('BDD style (URL,EMAIL)', function() {
 
     describe('UrlArea', function() {
         it('normalizeUrl', function() {
-            expect(UrlArea.normalizeUrl("htp/:/abcgermany.,def;:9094 #park//noon??abc=retry").normalizedUrl)
+            expect(UrlAreaApi.normalizeUrl("htp/:/abcgermany.,def;:9094 #park//noon??abc=retry").normalizedUrl)
                 .toBe("http://abcgermany.de:9094#park/noon?abc=retry");
         });
         it('parseUrl', function() {
-            expect(UrlArea.parseUrl("xtp://gooppalgo.com/park/tree/?abc=1").onlyUriWithParams)
+            expect(UrlAreaApi.parseUrl("xtp://gooppalgo.com/park/tree/?abc=1").onlyUriWithParams)
                 .toBe("/park/tree/?abc=1");
         });
     });
@@ -46,7 +46,7 @@ describe('BDD style (URL,EMAIL)', function() {
 
 
         it('extractAllUrls', function() {
-            assert.deepEqual(TextArea.extractAllUrls(textStr), [
+            assert.deepEqual(TextAreaApi.extractAllUrls(textStr), [
                 {
                     "value": {
                         "url": "http://[::1]:8000",
@@ -311,7 +311,7 @@ describe('BDD style (URL,EMAIL)', function() {
         });
 
         it('extractAllUrlsWithIntranets', function() {
-            assert.deepEqual(TextArea.extractAllUrls(textStr, {ipV4 : false, ipV6 :false, localhost : false,  intranet : true}), [
+            assert.deepEqual(TextAreaApi.extractAllUrls(textStr, {ipV4 : false, ipV6 :false, localhost : false,  intranet : true}), [
                 {
                     "value": {
                         "url": "http://[::1]:8000",
@@ -635,7 +635,7 @@ describe('BDD style (URL,EMAIL)', function() {
         });
 
        it('extractAllEmails', function() {
-            assert.deepEqual(TextArea.extractAllEmails(textStr, true), [
+            assert.deepEqual(TextAreaApi.extractAllEmails(textStr, true), [
                 {
                     "value": {
                         "email": "가나다@apacbook.ac.kr",
@@ -724,7 +724,7 @@ describe('BDD style (URI)', function() {
      * @return array
      */
     it('extractCertainUris', function() {
-        const uris = TextArea.extractCertainUris(
+        const uris = TextAreaApi.extractCertainUris(
             sampleText2,
             [['{number}', 'kak'], ['nice', 'guy'], ['abc', '{number}']],
             true
