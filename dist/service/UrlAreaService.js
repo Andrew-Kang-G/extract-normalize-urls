@@ -21,7 +21,7 @@ exports.UrlAreaService = {
      * @return array ({'url' : '', 'protocol' : '', 'onlyDomain' : '', 'onlyUriWithParams' : '', 'type' : ''})
      */
     normalizeUrl(url) {
-        let obj = {
+        let survivedUrlComponents = {
             url: null,
             normalizedUrl: null,
             removedTailOnUrl: '',
@@ -35,102 +35,102 @@ exports.UrlAreaService = {
             port: null
         };
         try {
-            url = valid_1.default.validateAndTrimString(url);
             /* Chapter 1. Normalizing process */
-            UrlNormalizer_1.UrlNormalizer.modifiedUrl = util_1.default.Text.removeAllSpaces(url);
             // 1. full url
-            obj.url = url;
+            // Record the original URL
+            survivedUrlComponents.url = url;
+            UrlNormalizer_1.UrlNormalizer.initializeSacrificedUrl(url);
             // 2. protocol
-            obj.protocol = UrlNormalizer_1.UrlNormalizer.extractAndNormalizeProtocolFromSpacesRemovedUrl();
+            survivedUrlComponents.protocol = UrlNormalizer_1.UrlNormalizer.extractAndNormalizeProtocolFromSpacesRemovedUrl();
             // 3. Domain
             let domainWithType = UrlNormalizer_1.UrlNormalizer.extractAndNormalizeDomainFromProtocolRemovedUrl();
-            obj.type = domainWithType.type;
-            obj.onlyDomain = domainWithType.domain;
+            survivedUrlComponents.type = domainWithType.type;
+            survivedUrlComponents.onlyDomain = domainWithType.domain;
             // 4. Port
-            obj.port = UrlNormalizer_1.UrlNormalizer.extractAndNormalizePortFromDomainRemovedUrl();
+            survivedUrlComponents.port = UrlNormalizer_1.UrlNormalizer.extractAndNormalizePortFromDomainRemovedUrl();
             // 5. Finalize
-            obj.normalizedUrl = UrlNormalizer_1.UrlNormalizer.finalizeNormalization(obj.protocol, obj.port, obj.onlyDomain);
+            survivedUrlComponents.normalizedUrl = UrlNormalizer_1.UrlNormalizer.extractNormalizedUrl(survivedUrlComponents.protocol, survivedUrlComponents.port, survivedUrlComponents.onlyDomain);
             // 6. Params & URI
             let uriParams = UrlNormalizer_1.UrlNormalizer.extractAndNormalizeUriParamsFromPortRemovedUrl();
-            obj.onlyUri = uriParams.uri;
-            obj.onlyParams = uriParams.params;
+            survivedUrlComponents.onlyUri = uriParams.uri;
+            survivedUrlComponents.onlyParams = uriParams.params;
             /* Chapter 2. Post normalizing process  (same as the function 'parseUrl')*/
-            let onlyUri = obj.onlyUri;
-            let onlyParams = obj.onlyParams;
+            let onlyUri = survivedUrlComponents.onlyUri;
+            let onlyParams = survivedUrlComponents.onlyParams;
             if (!onlyUri) {
                 onlyUri = '';
             }
             if (!onlyParams) {
                 onlyParams = '';
             }
-            obj.onlyUriWithParams = onlyUri + onlyParams;
-            if (!obj.onlyUriWithParams) {
-                obj.onlyUriWithParams = null;
+            survivedUrlComponents.onlyUriWithParams = onlyUri + onlyParams;
+            if (!survivedUrlComponents.onlyUriWithParams) {
+                survivedUrlComponents.onlyUriWithParams = null;
             }
             // 7. obj.onlyParams to JSON
-            if (obj.onlyParams) {
+            if (survivedUrlComponents.onlyParams) {
                 try {
-                    obj.onlyParamsJsn = queryString.parse(obj.onlyParams);
+                    survivedUrlComponents.onlyParamsJsn = queryString.parse(survivedUrlComponents.onlyParams);
                 }
                 catch (e1) {
                     console.log(e1);
                 }
             }
             // If no uris no params, we remove suffix in case that it is a meta character.
-            if (obj.onlyUri === null && obj.onlyParams === null) {
-                if (obj.type !== 'ipV6') {
+            if (survivedUrlComponents.onlyUri === null && survivedUrlComponents.onlyParams === null) {
+                if (survivedUrlComponents.type !== 'ipV6') {
                     // removedTailOnUrl
-                    let rm_part_matches = obj.normalizedUrl.match(new RegExp(BasePatterns_1.BasePatterns.noLangCharNum + '+$', 'gi'));
+                    let rm_part_matches = survivedUrlComponents.normalizedUrl.match(new RegExp(BasePatterns_1.BasePatterns.noLangCharNum + '+$', 'gi'));
                     if (rm_part_matches) {
-                        obj.removedTailOnUrl = rm_part_matches[0];
-                        obj.normalizedUrl = obj.normalizedUrl.replace(new RegExp(BasePatterns_1.BasePatterns.noLangCharNum + '+$', 'gi'), '');
+                        survivedUrlComponents.removedTailOnUrl = rm_part_matches[0];
+                        survivedUrlComponents.normalizedUrl = survivedUrlComponents.normalizedUrl.replace(new RegExp(BasePatterns_1.BasePatterns.noLangCharNum + '+$', 'gi'), '');
                     }
                 }
                 else {
-                    if (obj.port === null) {
+                    if (survivedUrlComponents.port === null) {
                         // removedTailOnUrl
-                        let rm_part_matches = obj.normalizedUrl.match(new RegExp('[^\\u005D]+$', 'gi'));
+                        let rm_part_matches = survivedUrlComponents.normalizedUrl.match(new RegExp('[^\\u005D]+$', 'gi'));
                         if (rm_part_matches) {
-                            obj.removedTailOnUrl = rm_part_matches[0];
-                            obj.normalizedUrl = obj.normalizedUrl.replace(new RegExp('[^\\u005D]+$', 'gi'), '');
+                            survivedUrlComponents.removedTailOnUrl = rm_part_matches[0];
+                            survivedUrlComponents.normalizedUrl = survivedUrlComponents.normalizedUrl.replace(new RegExp('[^\\u005D]+$', 'gi'), '');
                         }
                     }
                     else {
                         // removedTailOnUrl
-                        let rm_part_matches = obj.normalizedUrl.match(new RegExp(BasePatterns_1.BasePatterns.noLangCharNum + '+$', 'gi'));
+                        let rm_part_matches = survivedUrlComponents.normalizedUrl.match(new RegExp(BasePatterns_1.BasePatterns.noLangCharNum + '+$', 'gi'));
                         if (rm_part_matches) {
-                            obj.removedTailOnUrl = rm_part_matches[0];
-                            obj.normalizedUrl = obj.normalizedUrl.replace(new RegExp(BasePatterns_1.BasePatterns.noLangCharNum + '+$', 'gi'), '');
+                            survivedUrlComponents.removedTailOnUrl = rm_part_matches[0];
+                            survivedUrlComponents.normalizedUrl = survivedUrlComponents.normalizedUrl.replace(new RegExp(BasePatterns_1.BasePatterns.noLangCharNum + '+$', 'gi'), '');
                         }
                     }
                 }
             }
-            else if (obj.onlyUri !== null && obj.onlyParams === null) {
-                if (obj.url) {
-                    let rm_part_matches = new RegExp('\\/([^/\\s]+?)(' + BasePatterns_1.BasePatterns.noLangCharNum + '+)$', 'gi').exec(obj.url);
+            else if (survivedUrlComponents.onlyUri !== null && survivedUrlComponents.onlyParams === null) {
+                if (survivedUrlComponents.url) {
+                    let rm_part_matches = new RegExp('\\/([^/\\s]+?)(' + BasePatterns_1.BasePatterns.noLangCharNum + '+)$', 'gi').exec(survivedUrlComponents.url);
                     if (rm_part_matches) {
                         if (rm_part_matches[1]) {
                             if (!new RegExp(BasePatterns_1.BasePatterns.noLangCharNum, 'gi').test(rm_part_matches[1])) {
                                 if (rm_part_matches[2]) {
-                                    obj.removedTailOnUrl = rm_part_matches[2];
-                                    obj.removedTailOnUrl = rm_part_matches[2];
-                                    obj.normalizedUrl = obj.normalizedUrl.replace(new RegExp(BasePatterns_1.BasePatterns.noLangCharNum + '+$', 'gi'), '');
+                                    survivedUrlComponents.removedTailOnUrl = rm_part_matches[2];
+                                    survivedUrlComponents.removedTailOnUrl = rm_part_matches[2];
+                                    survivedUrlComponents.normalizedUrl = survivedUrlComponents.normalizedUrl.replace(new RegExp(BasePatterns_1.BasePatterns.noLangCharNum + '+$', 'gi'), '');
                                 }
                             }
                         }
                     }
                 }
             }
-            else if (obj.onlyParams !== null) {
-                if (obj.url) {
-                    let rm_part_matches = new RegExp('\\=([^=\\s]+?)(' + BasePatterns_1.BasePatterns.noLangCharNum + '+)$', 'gi').exec(obj.url);
+            else if (survivedUrlComponents.onlyParams !== null) {
+                if (survivedUrlComponents.url) {
+                    let rm_part_matches = new RegExp('\\=([^=\\s]+?)(' + BasePatterns_1.BasePatterns.noLangCharNum + '+)$', 'gi').exec(survivedUrlComponents.url);
                     if (rm_part_matches) {
                         if (rm_part_matches[1]) {
                             if (!new RegExp(BasePatterns_1.BasePatterns.noLangCharNum, 'gi').test(rm_part_matches[1])) {
                                 if (rm_part_matches[2]) {
-                                    obj.removedTailOnUrl = rm_part_matches[2];
-                                    obj.removedTailOnUrl = rm_part_matches[2];
-                                    obj.normalizedUrl = obj.normalizedUrl.replace(new RegExp(BasePatterns_1.BasePatterns.noLangCharNum + '+$', 'gi'), '');
+                                    survivedUrlComponents.removedTailOnUrl = rm_part_matches[2];
+                                    survivedUrlComponents.removedTailOnUrl = rm_part_matches[2];
+                                    survivedUrlComponents.normalizedUrl = survivedUrlComponents.normalizedUrl.replace(new RegExp(BasePatterns_1.BasePatterns.noLangCharNum + '+$', 'gi'), '');
                                 }
                             }
                         }
@@ -139,22 +139,22 @@ exports.UrlAreaService = {
             }
             // If no uri no params, we remove suffix in case that it is non-alphabets.
             // The regex below means "all except for '.'". It is for extracting all root domains, so non-domain types like ip are excepted.
-            if (obj.type && obj.type === 'domain') {
-                if (obj.onlyUri === null && obj.onlyParams === null) {
-                    if (obj.port === null) {
-                        if (obj.normalizedUrl) {
-                            let onlyEnd = obj.normalizedUrl.match(new RegExp('[^.]+$', 'gi'));
+            if (survivedUrlComponents.type && survivedUrlComponents.type === 'domain') {
+                if (survivedUrlComponents.onlyUri === null && survivedUrlComponents.onlyParams === null) {
+                    if (survivedUrlComponents.port === null) {
+                        if (survivedUrlComponents.normalizedUrl) {
+                            let onlyEnd = survivedUrlComponents.normalizedUrl.match(new RegExp('[^.]+$', 'gi'));
                             if (onlyEnd && onlyEnd.length > 0) {
                                 // this is a root domain only in English like com, ac
                                 // but the situation is like com가, ac나
                                 if (/^[a-zA-Z]+/.test(onlyEnd[0])) {
-                                    if (/[^a-zA-Z]+$/.test(obj.normalizedUrl)) {
+                                    if (/[^a-zA-Z]+$/.test(survivedUrlComponents.normalizedUrl)) {
                                         // remove non alphabets
-                                        const matchedNormalizeUrl = obj.normalizedUrl.match(/[^a-zA-Z]+$/);
+                                        const matchedNormalizeUrl = survivedUrlComponents.normalizedUrl.match(/[^a-zA-Z]+$/);
                                         if (matchedNormalizeUrl && matchedNormalizeUrl.length > 0) {
-                                            obj.removedTailOnUrl = matchedNormalizeUrl[0] + obj.removedTailOnUrl;
+                                            survivedUrlComponents.removedTailOnUrl = matchedNormalizeUrl[0] + survivedUrlComponents.removedTailOnUrl;
                                         }
-                                        obj.normalizedUrl = obj.normalizedUrl.replace(/[^a-zA-Z]+$/, '');
+                                        survivedUrlComponents.normalizedUrl = survivedUrlComponents.normalizedUrl.replace(/[^a-zA-Z]+$/, '');
                                     }
                                 }
                             }
@@ -162,17 +162,17 @@ exports.UrlAreaService = {
                     }
                     else {
                         // this is a domain with no uri no params
-                        let onlyEnd = obj.normalizedUrl.match(new RegExp('[^:]+$', 'gi'));
+                        let onlyEnd = survivedUrlComponents.normalizedUrl.match(new RegExp('[^:]+$', 'gi'));
                         if (onlyEnd && onlyEnd.length > 0) {
                             // this is a port num like 8000
                             if (/[0-9]/.test(onlyEnd[0])) {
-                                if (/[^0-9]+$/.test(obj.normalizedUrl)) {
+                                if (/[^0-9]+$/.test(survivedUrlComponents.normalizedUrl)) {
                                     // remove non numbers
-                                    const matchedNormalizeUrl = obj.normalizedUrl.match(/[^0-9]+$/);
+                                    const matchedNormalizeUrl = survivedUrlComponents.normalizedUrl.match(/[^0-9]+$/);
                                     if (matchedNormalizeUrl && matchedNormalizeUrl.length > 0) {
-                                        obj.removedTailOnUrl = matchedNormalizeUrl[0] + obj.removedTailOnUrl;
+                                        survivedUrlComponents.removedTailOnUrl = matchedNormalizeUrl[0] + survivedUrlComponents.removedTailOnUrl;
                                     }
-                                    obj.normalizedUrl = obj.normalizedUrl.replace(/[^0-9]+$/, '');
+                                    survivedUrlComponents.normalizedUrl = survivedUrlComponents.normalizedUrl.replace(/[^0-9]+$/, '');
                                 }
                             }
                         }
@@ -184,7 +184,7 @@ exports.UrlAreaService = {
             console.log(e);
         }
         finally {
-            return obj;
+            return survivedUrlComponents;
         }
     },
     /**
@@ -195,7 +195,7 @@ exports.UrlAreaService = {
      * @return array ({'url' : '', 'protocol' : '', 'onlyDomain' : '', 'onlyUriWithParams' : '', 'type' : ''})
      */
     parseUrl(url) {
-        let obj = {
+        let parsedUrlComponents = {
             url: null,
             removedTailOnUrl: '',
             protocol: null,
@@ -217,7 +217,7 @@ exports.UrlAreaService = {
                 throw new Error('This is an email pattern.' + ' / Error url : ' + url);
             }
             // 1. full url
-            obj.url = url;
+            parsedUrlComponents.url = url;
             // 2. protocol
             let rx = new RegExp('^([a-zA-Z0-9]+):');
             let match;
@@ -227,24 +227,24 @@ exports.UrlAreaService = {
                     isMatched = true;
                     // exception case for rx
                     if (match[1] === 'localhost') {
-                        obj.protocol = null;
+                        parsedUrlComponents.protocol = null;
                         break;
                     }
                     let rx2 = new RegExp(ProtocolPatterns_1.ProtocolPatterns.allProtocols, 'gi');
                     let match2 = {};
                     let isMatched2 = false;
                     while ((match2 = rx2.exec(match[1]) !== null)) {
-                        obj.protocol = match[1];
+                        parsedUrlComponents.protocol = match[1];
                         isMatched2 = true;
                     }
                     if (!isMatched2) {
-                        obj.protocol = match[1] + ' (unknown protocol)';
+                        parsedUrlComponents.protocol = match[1] + ' (unknown protocol)';
                     }
                     break;
                 }
             }
             if (!isMatched) {
-                obj.protocol = null;
+                parsedUrlComponents.protocol = null;
             }
             // 3. Separate a domain and the 'UriWithParams'
             url = url.replace(/^(?:[a-zA-Z0-9]+:\/\/)/g, '');
@@ -252,41 +252,41 @@ exports.UrlAreaService = {
             let rx3 = new RegExp('\\?(?:.|[\\s])*$', 'gi');
             let match3;
             while ((match3 = rx3.exec(url)) !== null) {
-                obj.onlyParams = match3[0];
+                parsedUrlComponents.onlyParams = match3[0];
             }
             url = url.replace(rx3, '');
-            if (obj.onlyParams === "?") {
-                obj.onlyParams = null;
+            if (parsedUrlComponents.onlyParams === "?") {
+                parsedUrlComponents.onlyParams = null;
             }
             // 5. Separate uri
             let rx2 = new RegExp('[#/](?:.|[\\s])*$', 'gi');
             let match2;
             while ((match2 = rx2.exec(url)) !== null) {
-                obj.onlyUri = match2[0];
+                parsedUrlComponents.onlyUri = match2[0];
             }
             url = url.replace(rx2, '');
-            if (obj.onlyUri != null) {
-                if (/^[#/]+$/.test(obj.onlyUri)) {
-                    obj.onlyUri = null;
+            if (parsedUrlComponents.onlyUri != null) {
+                if (/^[#/]+$/.test(parsedUrlComponents.onlyUri)) {
+                    parsedUrlComponents.onlyUri = null;
                 }
             }
             // 6.
-            let onlyUri = obj.onlyUri;
-            let onlyParams = obj.onlyParams;
+            let onlyUri = parsedUrlComponents.onlyUri;
+            let onlyParams = parsedUrlComponents.onlyParams;
             if (!onlyUri) {
                 onlyUri = '';
             }
             if (!onlyParams) {
                 onlyParams = '';
             }
-            obj.onlyUriWithParams = onlyUri + onlyParams;
-            if (!obj.onlyUriWithParams) {
-                obj.onlyUriWithParams = null;
+            parsedUrlComponents.onlyUriWithParams = onlyUri + onlyParams;
+            if (!parsedUrlComponents.onlyUriWithParams) {
+                parsedUrlComponents.onlyUriWithParams = null;
             }
             // 7. obj.onlyParams to JSON
-            if (obj.onlyParams) {
+            if (parsedUrlComponents.onlyParams) {
                 try {
-                    obj.onlyParamsJsn = queryString.parse(obj.onlyParams);
+                    parsedUrlComponents.onlyParamsJsn = queryString.parse(parsedUrlComponents.onlyParams);
                 }
                 catch (e1) {
                     console.log(e1);
@@ -296,83 +296,83 @@ exports.UrlAreaService = {
             if (/:[0-9]+$/.test(url)) {
                 const portMatch = url.match(/[0-9]+$/);
                 if (portMatch) {
-                    obj.port = portMatch[0];
+                    parsedUrlComponents.port = portMatch[0];
                     url = url.replace(/:[0-9]+$/, '');
                 }
             }
             // 9.
-            obj.onlyDomain = url;
+            parsedUrlComponents.onlyDomain = url;
             // 10. type : domain, ip, localhost
             if (new RegExp('^' + DomainPatterns_1.DomainPatterns.ipV4, 'i').test(url)) {
-                obj.type = 'ipV4';
+                parsedUrlComponents.type = 'ipV4';
             }
             else if (new RegExp('^' + DomainPatterns_1.DomainPatterns.ipV6, 'i').test(url)) {
                 //console.log('r : ' + url);
-                obj.type = 'ipV6';
+                parsedUrlComponents.type = 'ipV6';
             }
             else if (/^localhost/i.test(url)) {
-                obj.type = 'localhost';
+                parsedUrlComponents.type = 'localhost';
             }
             else {
-                obj.type = 'domain';
+                parsedUrlComponents.type = 'domain';
             }
             // If no uris no params, we remove suffix in case that it is a meta character.
-            if (obj.onlyUri === null && obj.onlyParams === null) {
-                if (obj.url) {
-                    if (obj.type !== 'ipV6') {
+            if (parsedUrlComponents.onlyUri === null && parsedUrlComponents.onlyParams === null) {
+                if (parsedUrlComponents.url) {
+                    if (parsedUrlComponents.type !== 'ipV6') {
                         // removedTailOnUrl
-                        let rm_part_matches = obj.url.match(new RegExp(BasePatterns_1.BasePatterns.noLangCharNum + '+$', 'gi'));
+                        let rm_part_matches = parsedUrlComponents.url.match(new RegExp(BasePatterns_1.BasePatterns.noLangCharNum + '+$', 'gi'));
                         if (rm_part_matches) {
-                            obj.removedTailOnUrl = rm_part_matches[0];
-                            obj.url = obj.url.replace(new RegExp(BasePatterns_1.BasePatterns.noLangCharNum + '+$', 'gi'), '');
+                            parsedUrlComponents.removedTailOnUrl = rm_part_matches[0];
+                            parsedUrlComponents.url = parsedUrlComponents.url.replace(new RegExp(BasePatterns_1.BasePatterns.noLangCharNum + '+$', 'gi'), '');
                         }
                     }
                     else {
-                        if (obj.port === null) {
+                        if (parsedUrlComponents.port === null) {
                             // removedTailOnUrl
-                            let rm_part_matches = obj.url.match(new RegExp('[^\\u005D]+$', 'gi'));
+                            let rm_part_matches = parsedUrlComponents.url.match(new RegExp('[^\\u005D]+$', 'gi'));
                             if (rm_part_matches) {
-                                obj.removedTailOnUrl = rm_part_matches[0];
-                                obj.url = obj.url.replace(new RegExp('[^\\u005D]+$', 'gi'), '');
+                                parsedUrlComponents.removedTailOnUrl = rm_part_matches[0];
+                                parsedUrlComponents.url = parsedUrlComponents.url.replace(new RegExp('[^\\u005D]+$', 'gi'), '');
                             }
                         }
                         else {
                             // removedTailOnUrl
-                            let rm_part_matches = obj.url.match(new RegExp(BasePatterns_1.BasePatterns.noLangCharNum + '+$', 'gi'));
+                            let rm_part_matches = parsedUrlComponents.url.match(new RegExp(BasePatterns_1.BasePatterns.noLangCharNum + '+$', 'gi'));
                             if (rm_part_matches) {
-                                obj.removedTailOnUrl = rm_part_matches[0];
-                                obj.url = obj.url.replace(new RegExp(BasePatterns_1.BasePatterns.noLangCharNum + '+$', 'gi'), '');
+                                parsedUrlComponents.removedTailOnUrl = rm_part_matches[0];
+                                parsedUrlComponents.url = parsedUrlComponents.url.replace(new RegExp(BasePatterns_1.BasePatterns.noLangCharNum + '+$', 'gi'), '');
                             }
                         }
                     }
                 }
             }
-            else if (obj.onlyUri !== null && obj.onlyParams === null) {
-                if (obj.url) {
-                    let rm_part_matches = new RegExp('[#/]([^/\\s]+?)(' + BasePatterns_1.BasePatterns.noLangCharNum + '+)$', 'gi').exec(obj.url);
+            else if (parsedUrlComponents.onlyUri !== null && parsedUrlComponents.onlyParams === null) {
+                if (parsedUrlComponents.url) {
+                    let rm_part_matches = new RegExp('[#/]([^/\\s]+?)(' + BasePatterns_1.BasePatterns.noLangCharNum + '+)$', 'gi').exec(parsedUrlComponents.url);
                     if (rm_part_matches) {
                         if (rm_part_matches[1]) {
                             if (!new RegExp(BasePatterns_1.BasePatterns.noLangCharNum, 'gi').test(rm_part_matches[1])) {
                                 if (rm_part_matches[2]) {
-                                    obj.removedTailOnUrl = rm_part_matches[2];
-                                    obj.removedTailOnUrl = rm_part_matches[2];
-                                    obj.url = obj.url.replace(new RegExp(BasePatterns_1.BasePatterns.noLangCharNum + '+$', 'gi'), '');
+                                    parsedUrlComponents.removedTailOnUrl = rm_part_matches[2];
+                                    parsedUrlComponents.removedTailOnUrl = rm_part_matches[2];
+                                    parsedUrlComponents.url = parsedUrlComponents.url.replace(new RegExp(BasePatterns_1.BasePatterns.noLangCharNum + '+$', 'gi'), '');
                                 }
                             }
                         }
                     }
                 }
             }
-            else if (obj.onlyParams !== null) {
-                if (obj.url) {
-                    let rm_part_matches = new RegExp('\\=([^=\\s]+?)(' + BasePatterns_1.BasePatterns.noLangCharNum + '+)$', 'gi').exec(obj.url);
+            else if (parsedUrlComponents.onlyParams !== null) {
+                if (parsedUrlComponents.url) {
+                    let rm_part_matches = new RegExp('\\=([^=\\s]+?)(' + BasePatterns_1.BasePatterns.noLangCharNum + '+)$', 'gi').exec(parsedUrlComponents.url);
                     if (rm_part_matches) {
                         if (rm_part_matches[1]) {
                             if (!new RegExp(BasePatterns_1.BasePatterns.noLangCharNum, 'gi').test(rm_part_matches[1])) {
                                 if (rm_part_matches[2]) {
-                                    obj.removedTailOnUrl = rm_part_matches[2];
-                                    obj.removedTailOnUrl = rm_part_matches[2];
-                                    obj.url = obj.url.replace(new RegExp(BasePatterns_1.BasePatterns.noLangCharNum + '+$', 'gi'), '');
+                                    parsedUrlComponents.removedTailOnUrl = rm_part_matches[2];
+                                    parsedUrlComponents.removedTailOnUrl = rm_part_matches[2];
+                                    parsedUrlComponents.url = parsedUrlComponents.url.replace(new RegExp(BasePatterns_1.BasePatterns.noLangCharNum + '+$', 'gi'), '');
                                 }
                             }
                         }
@@ -381,38 +381,38 @@ exports.UrlAreaService = {
             }
             // If no uri no params, we remove suffix in case that it is non-alphabets.
             // The regex below means "all except for '.'". It is for extracting all root domains, so non-domain types like ip are excepted.
-            if (obj.url && obj.type === 'domain') {
-                if (obj.onlyUri === null && obj.onlyParams === null) {
-                    if (obj.port === null) {
-                        let onlyEnd = obj.url.match(new RegExp('[^.]+$', 'gi'));
+            if (parsedUrlComponents.url && parsedUrlComponents.type === 'domain') {
+                if (parsedUrlComponents.onlyUri === null && parsedUrlComponents.onlyParams === null) {
+                    if (parsedUrlComponents.port === null) {
+                        let onlyEnd = parsedUrlComponents.url.match(new RegExp('[^.]+$', 'gi'));
                         if (onlyEnd && onlyEnd.length > 0) {
                             // this is a root domain only in English like com, ac
                             // but the situation is like com가, ac나
                             if (/^[a-zA-Z]+/.test(onlyEnd[0])) {
-                                if (/[^a-zA-Z]+$/.test(obj.url)) {
+                                if (/[^a-zA-Z]+$/.test(parsedUrlComponents.url)) {
                                     // remove non alphabets
-                                    const matchedObjUrl = obj.url.match(/[^a-zA-Z]+$/);
+                                    const matchedObjUrl = parsedUrlComponents.url.match(/[^a-zA-Z]+$/);
                                     if (matchedObjUrl && matchedObjUrl.length > 0) {
-                                        obj.removedTailOnUrl = matchedObjUrl[0] + obj.removedTailOnUrl;
+                                        parsedUrlComponents.removedTailOnUrl = matchedObjUrl[0] + parsedUrlComponents.removedTailOnUrl;
                                     }
-                                    obj.url = obj.url.replace(/[^a-zA-Z]+$/, '');
+                                    parsedUrlComponents.url = parsedUrlComponents.url.replace(/[^a-zA-Z]+$/, '');
                                 }
                             }
                         }
                     }
                     else {
                         // this is a domain with no uri no params
-                        let onlyEnd = obj.url.match(new RegExp('[^:]+$', 'gi'));
+                        let onlyEnd = parsedUrlComponents.url.match(new RegExp('[^:]+$', 'gi'));
                         if (onlyEnd && onlyEnd.length > 0) {
                             // this is a port num like 8000
                             if (/[0-9]/.test(onlyEnd[0])) {
-                                if (/[^0-9]+$/.test(obj.url)) {
+                                if (/[^0-9]+$/.test(parsedUrlComponents.url)) {
                                     // remove non numbers
-                                    const matchedObjUrl = obj.url.match(/[^0-9]+$/);
+                                    const matchedObjUrl = parsedUrlComponents.url.match(/[^0-9]+$/);
                                     if (matchedObjUrl && matchedObjUrl.length > 0) {
-                                        obj.removedTailOnUrl = matchedObjUrl[0] + obj.removedTailOnUrl;
+                                        parsedUrlComponents.removedTailOnUrl = matchedObjUrl[0] + parsedUrlComponents.removedTailOnUrl;
                                     }
-                                    obj.url = obj.url.replace(/[^0-9]+$/, '');
+                                    parsedUrlComponents.url = parsedUrlComponents.url.replace(/[^0-9]+$/, '');
                                 }
                             }
                         }
@@ -421,12 +421,12 @@ exports.UrlAreaService = {
             }
             // 12. uri like 'abc/def'
             //if(!new RegExp('^' + BasePatterns.all_protocols + '|\\.' + BasePatterns.all_root_domains + '\\/|\\?','gi').test(obj.onlyDomain)){
-            if (obj.url && !new RegExp(SafeConditionalUrlPatternBuilder_1.SafeConditionalUrlPatternBuilder.getUrl, 'gi').test(obj.url)) {
-                obj.onlyDomain = null;
-                obj.type = 'uri';
-                if (!/^[/]/.test(obj.url)) {
-                    obj.onlyUriWithParams = obj.url;
-                    obj.onlyUri = obj.url.replace(/\?[^/]*$/gi, '');
+            if (parsedUrlComponents.url && !new RegExp(SafeConditionalUrlPatternBuilder_1.SafeConditionalUrlPatternBuilder.getUrl, 'gi').test(parsedUrlComponents.url)) {
+                parsedUrlComponents.onlyDomain = null;
+                parsedUrlComponents.type = 'uri';
+                if (!/^[/]/.test(parsedUrlComponents.url)) {
+                    parsedUrlComponents.onlyUriWithParams = parsedUrlComponents.url;
+                    parsedUrlComponents.onlyUri = parsedUrlComponents.url.replace(/\?[^/]*$/gi, '');
                 }
             }
         }
@@ -434,7 +434,7 @@ exports.UrlAreaService = {
             console.log(e);
         }
         finally {
-            return obj;
+            return parsedUrlComponents;
         }
     }
 };

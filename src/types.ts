@@ -1,4 +1,8 @@
-// Text Area Types
+/*
+*   Types consist of 1) Parameters, 2) One, 3) List Areas
+* */
+
+/* Parameters */
 export type NoProtocolJsnParamType = {
     ipV4?: boolean;
     ipV6?: boolean;
@@ -6,7 +10,8 @@ export type NoProtocolJsnParamType = {
     intranet?: boolean;
 };
 
-export interface ParsedUrlType {
+/* One area */
+export interface ParsedUrlComponents {
     url: string | null;              // Full URL or null
     removedTailOnUrl: string;        // Part of the URL removed from the tail
     protocol: string | null;         // URL protocol (e.g., http, https) or null
@@ -18,16 +23,24 @@ export interface ParsedUrlType {
     type: string | null;             // Type of the parsed URL (e.g., custom classification) or null
     port: string | null;             // Port number or null
 }
-
-export interface ParsedUrlWithNormalizationType extends ParsedUrlType {
+export interface ParsedUrlWithNormalizationComponents extends ParsedUrlComponents {
     normalizedUrl: string | null;    // Normalized version of the URL or null
 }
+export type ParsedEmailComponents = {
+    email: string | null;             // Full email address or null
+    removedTailOnEmail: string | null; // Part of the email removed from the tail or null
+    type: "ipV4" | "ipV6" | "domain" | null;
+};
 
-
-
+/*
+*   One area (Only for URL Normalization)
+* */
 export type NormalizerType = {
-    modifiedUrl: string | null | undefined; // 현재 URL 상태 (수정됨)
+    sacrificedUrl: string | null | undefined;
+    currentStep: number;
 
+    initializeSacrificedUrl: (url: string) => void;
+    ensureStepCompleted: (requiredStep: number) => void;
     // Extracts and normalizes protocol from the URL
     extractAndNormalizeProtocolFromSpacesRemovedUrl: () => string | null;
 
@@ -41,7 +54,7 @@ export type NormalizerType = {
     extractAndNormalizePortFromDomainRemovedUrl: () => string | null;
 
     // Finalizes the normalized URL by combining protocol, domain, port, and other parts
-    finalizeNormalization: (
+    extractNormalizedUrl: (
         protocol: string | null,
         port: string | null,
         domain: string | null
@@ -54,26 +67,10 @@ export type NormalizerType = {
     };
 }
 
-export type EmailInfoType = {
-    email: string | null;             // Full email address or null
-    removedTailOnEmail: string | null; // Part of the email removed from the tail or null
-    type: "ipV4" | "ipV6" | "domain" | null;
-};
 
-
-export interface ElementMatch {
-    value: string;
-    elementName: string;
-    startIndex: number;
-    lastIndex: number;
-    commentArea: boolean | null;
-}
-
-export interface CommentMatch {
-    value: string;
-    startIndex: number;
-    lastIndex: number;
-}
+/*
+*   List Area
+* */
 
 export interface StringValueBaseMatch {
     value: string;
@@ -81,7 +78,7 @@ export interface StringValueBaseMatch {
 }
 
 export interface BaseMatch {
-    value: ParsedUrlType;
+    value: ParsedUrlComponents;
     area: string;
 }
 
@@ -98,11 +95,27 @@ export interface ExtractCertainUriMatch  {
 }
 
 export interface EmailMatch {
-    value: EmailInfoType;
+    value: ParsedEmailComponents;
     area: string;
     index: {
         start: number;
         end: number;
     };
     pass: boolean;
+}
+/*
+*   List Area - XML
+* */
+export interface ElementMatch {
+    value: string;
+    elementName: string;
+    startIndex: number;
+    lastIndex: number;
+    commentArea: boolean | null;
+}
+
+export interface CommentMatch {
+    value: string;
+    startIndex: number;
+    lastIndex: number;
 }

@@ -1,38 +1,58 @@
 # Url-knife [![NPM version](https://img.shields.io/npm/v/url-knife.svg)](https://www.npmjs.com/package/url-knife) [![](https://data.jsdelivr.com/v1/package/gh/patternknife/url-knife/badge)](https://www.jsdelivr.com/package/gh/patternknife/url-knife) [![](https://badgen.net/bundlephobia/minzip/url-knife)](https://bundlephobia.com/result?p=url-knife)
 ## Overview
-Extract and decompose (fuzzy) URLs (including emails, which are conceptually a part of URLs) in texts with robust patterns.
-
+Extract and decompose (fuzzy) URLs (including emails, which are conceptually a part of URLs) in texts with ``Area-Pattern-based modularity``.
 - This library is currently being refactored into TypeScript, as it was originally developed in JavaScript. 
 
 #### URL knife
 <a href="https://jsfiddle.net/AndrewKang/xtfjn8g3/" target="_blank">LIVE DEMO</a>
 
 
+## Area-Pattern-Based Modularity
+
+The **Area** represents a designated section of content, such as general text, XML (HTML) areas, URL areas, or EMAIL areas. Each **Area** is associated with a specific set of **Patterns** (regular expressions) tailored to its context.
+
+### Example:
+
+1. In a **TextArea** (general plain text), the system applies a URL-specific regular expression to extract potential URLs.
+2. Once the area is narrowed down to contain URLs, **UrlArea** logic is used, applying URL-specific patterns to decompose the URL into its components (e.g., protocol, domain, path, query parameters).
+
+### Enhanced Accuracy with Regular Expression Indexes:
+To further improve accuracy, the system leverages the **index** (or **offset**) values from regular expressions. These indexes help pinpoint exact locations of matches within the text, ensuring precise extraction and minimizing false positives.
+
+For example:
+- If a **CommentArea** is processed using its specific patterns, the system identifies indexes for matches within that area.
+- These indexes can then be used to exclude matched URLs from a broader **TextArea**, ensuring only relevant URLs are processed and avoiding redundant or incorrect extractions.
+
+### Key Benefits:
+This modular approach ensures that each **Area** is processed efficiently with the most relevant and optimized regular expressions. By incorporating index-based matching, it enables robust, scalable, and highly accurate parsing for various content types while preventing conflicts between overlapping patterns.
+
+
 ## Installation
 
-For ES5 users,
+For ES5 users, refer to ``public/index.html``.
 
 ``` html
 <html>
        <body>
        	<script src="../dist/url-knife.bundle.js"></script>
         <--! OR !-->
-       	<script src="https://cdn.jsdelivr.net/gh/patternknife/url-knife@4.1.5/dist/url-knife.bundle.min.js"></script>
-       	
-       	<script type="text/javascript">
-       	</script>
+       	<script src="https://cdn.jsdelivr.net/gh/patternknife/url-knife@4.1.6/dist/url-knife.bundle.min.js"></script> 	
        </body>
 </html>
 ```
 
-For ES6 npm users, run 'npm install --save url-knife' on console.
+For ES6 npm users, run 'npm install --save url-knife' in the console.
 (**Requred Node v18.20.4**)
-
 ``` html
 import {TextArea, UrlArea, XmlArea} from 'url-knife';
 ```
+For ES5, add Pattern before usage:
+```javascript
+Pattern.UrlArea...
+````
 
 ## Syntax & Usage
+
 [Chapter 1. Normalize or parse one URL](#chapter-1-normalize-or-parse-one-url)
 
 [Chapter 2. Extract all URLs or emails](#chapter-2-extract-all-urls-or-emails)

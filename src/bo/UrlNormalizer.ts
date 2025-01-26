@@ -5,15 +5,38 @@ import {BasePatterns} from "../pattern/BasePatterns";
 import {ProtocolPatterns} from "../pattern/ProtocolPatterns";
 import {NormalizerType} from "../types";
 import {DomainPatterns} from "../pattern/DomainPatterns";
+import Valid from "../valid";
 
 export const UrlNormalizer: NormalizerType  = {
 
-    modifiedUrl : null,
+    sacrificedUrl : null,
+    currentStep: 0,
+
+    /**
+     * Initializes the UrlNormalizer with a given URL.
+     * @param url - The URL to normalize.
+     */
+    initializeSacrificedUrl(url: string) {
+        this.sacrificedUrl = Util.Text.removeAllSpaces(Valid.validateAndTrimString(url));
+        if (!this.sacrificedUrl) {
+            throw new Error("modifiedUrl cannot be null or empty");
+        }
+        this.currentStep = 1;
+    },
+    /**
+     * Check if the required previous step is completed.
+     * @param requiredStep - The step that should have been completed.
+     */
+    ensureStepCompleted(requiredStep: number) {
+        if (this.currentStep != requiredStep) {
+            throw new Error(`Step ${requiredStep} must be completed before this step ${this.currentStep}`);
+        }
+    },
 
     extractAndNormalizeProtocolFromSpacesRemovedUrl(){
-
-        if (this.modifiedUrl == undefined) {
-            throw new Error("modifiedUrl cannot be null");
+        this.ensureStepCompleted(1);
+        if (!this.sacrificedUrl) {
+            throw new Error("modifiedUrl cannot be null or empty");
         }
 
         let protocol = null;
@@ -22,7 +45,7 @@ export const UrlNormalizer: NormalizerType  = {
 
         let match: RegExpExecArray | null;
         let isMatched = false;
-        while ((match = rx.exec(this.modifiedUrl)) !== null) {
+        while ((match = rx.exec(this.sacrificedUrl)) !== null) {
 
             if (match && match[1]) {
 
@@ -49,15 +72,16 @@ export const UrlNormalizer: NormalizerType  = {
 
         }
 
-        this.modifiedUrl = this.modifiedUrl.replace(rx, '');
+        this.sacrificedUrl = this.sacrificedUrl.replace(rx, '');
+        this.currentStep = 2;
 
         return protocol;
 
     },
 
     extractAndNormalizeDomainFromProtocolRemovedUrl(): ReturnType<NormalizerType["extractAndNormalizeDomainFromProtocolRemovedUrl"]> {
-
-        if (this.modifiedUrl == undefined) {
+        this.ensureStepCompleted(2);
+        if (this.sacrificedUrl == undefined) {
             throw new Error("modifiedUrl cannot be null");
         }
 
@@ -69,7 +93,7 @@ export const UrlNormalizer: NormalizerType  = {
         let rx1 = new RegExp('(' + FuzzyPartialUrlPatterns.getFuzzyDomainBody + '.*?)(' + FuzzyPartialUrlPatterns.optionalFuzzyPort +
             FuzzyPartialUrlPatterns.optionalFuzzyUrlParams + ')$', 'gi');
         let match1 : RegExpExecArray | null;
-        while ((match1 = rx1.exec(this.modifiedUrl)) !== null) {
+        while ((match1 = rx1.exec(this.sacrificedUrl)) !== null) {
 
             // remaining full url
             let domain_temp = match1[0];
@@ -182,19 +206,21 @@ export const UrlNormalizer: NormalizerType  = {
                 result.domain = domain_temp2;
             }
 
-            this.modifiedUrl = domain_temp3;
+            this.sacrificedUrl = domain_temp3;
 
         }
 
         //console.log("before : " + this.modifiedUrl)
         // This sort of characters should NOT be located at the start.
-        this.modifiedUrl = this.modifiedUrl.replace(new RegExp('^(?:' + BasePatterns.twoBytesNum + '|' +  BasePatterns.langChar + ')+', 'i'), '');
-        //console.log("after : " + this.modifiedUrl)
+        this.sacrificedUrl = this.sacrificedUrl.replace(new RegExp('^(?:' + BasePatterns.twoBytesNum + '|' +  BasePatterns.langChar + ')+', 'i'), '');
+        this.currentStep = 3;
+
         return result;
 
     },
 
     extractAndNormalizePortFromDomainRemovedUrl(){
+        this.ensureStepCompleted(3);
 
         let port = null;
 
@@ -202,31 +228,32 @@ export const UrlNormalizer: NormalizerType  = {
         let match: RegExpExecArray | null;
 
 
-        if (this.modifiedUrl == undefined) {
+        if (this.sacrificedUrl == undefined) {
             throw new Error("modifiedUrl cannot be null");
         }
-        while((match = rx.exec(this.modifiedUrl)) !== null) {
+        while((match = rx.exec(this.sacrificedUrl)) !== null) {
             port = match[0].replace( /^\D+/g, '');
-            if (this.modifiedUrl != undefined) {
-                this.modifiedUrl = this.modifiedUrl.replace(rx, '');
+            if (this.sacrificedUrl != undefined) {
+                this.sacrificedUrl = this.sacrificedUrl.replace(rx, '');
             }
         }
 
+        this.currentStep = 4;
         return port;
 
     },
 
-    finalizeNormalization(protocol, port, domain): string{
-
-        if (this.modifiedUrl == undefined) {
+    extractNormalizedUrl(protocol, port, domain): string{
+        this.ensureStepCompleted(4);
+        if (this.sacrificedUrl == undefined) {
             throw new Error("modifiedUrl cannot be null");
         }
 
         /* Now, only the end part of a domain is left */
         /* Consecutive param delimiters should be replaced into one */
-        this.modifiedUrl = this.modifiedUrl.replace(/[#]{2,}/gi, '#');
-        this.modifiedUrl  = this.modifiedUrl.replace(/[/]{2,}/gi, '/');
-        this.modifiedUrl  = this.modifiedUrl.replace(/(.*?)[?]{2,}([^/]*?(?:=|$))(.*)/i, function(match, $1, $2, $3){
+        this.sacrificedUrl = this.sacrificedUrl.replace(/[#]{2,}/gi, '#');
+        this.sacrificedUrl  = this.sacrificedUrl.replace(/[/]{2,}/gi, '/');
+        this.sacrificedUrl  = this.sacrificedUrl.replace(/(.*?)[?]{2,}([^/]*?(?:=|$))(.*)/i, function(match, $1, $2, $3){
             //console.log(modified_url + ' a :' + $1 + '?' + $2 + $3);
             return $1 + '?' + $2 + $3;
         });
@@ -234,9 +261,9 @@ export const UrlNormalizer: NormalizerType  = {
         /* 'modified_url' must start with '/,?,#' */
         let rx_modified_url = new RegExp('(?:\\/|\\?|\\#)', 'i');
         let match_modified_url: RegExpExecArray | null;
-        if ((match_modified_url = rx_modified_url.exec(this.modifiedUrl)) !== null) {
+        if ((match_modified_url = rx_modified_url.exec(this.sacrificedUrl)) !== null) {
 
-            this.modifiedUrl = this.modifiedUrl.replace(new RegExp('^.*?(' + Util.Text.escapeRegex(match_modified_url[0]) + '.*)$', 'i'), function(match, $1){
+            this.sacrificedUrl = this.sacrificedUrl.replace(new RegExp('^.*?(' + Util.Text.escapeRegex(match_modified_url[0]) + '.*)$', 'i'), function(match, $1){
                 return $1;
             });
         }
@@ -260,13 +287,14 @@ export const UrlNormalizer: NormalizerType  = {
             onlyDomain_str = '';
         }
 
-        return protocol_str + onlyDomain_str + port_str + this.modifiedUrl;
+        this.currentStep = 5;
+        return protocol_str + onlyDomain_str + port_str + this.sacrificedUrl;
 
     },
 
     extractAndNormalizeUriParamsFromPortRemovedUrl(): ReturnType<NormalizerType["extractAndNormalizeUriParamsFromPortRemovedUrl"]>{
-
-        if (this.modifiedUrl == undefined) {
+        this.ensureStepCompleted(5);
+        if (this.sacrificedUrl == undefined) {
             throw new Error("modifiedUrl cannot be null");
         }
 
@@ -275,7 +303,7 @@ export const UrlNormalizer: NormalizerType  = {
             params : null
         };
 
-        if(!this.modifiedUrl || this.modifiedUrl.trim() === ''){
+        if(!this.sacrificedUrl || this.sacrificedUrl.trim() === ''){
             result.params = null;
             result.uri = null;
         }else{
@@ -283,11 +311,11 @@ export const UrlNormalizer: NormalizerType  = {
             // PARAMS
             let rx3 = new RegExp('\\?(?:.)*$', 'gi');
             let match3: RegExpExecArray | null;
-            while ((match3 = rx3.exec(this.modifiedUrl)) !== null) {
+            while ((match3 = rx3.exec(this.sacrificedUrl)) !== null) {
 
                 result.params = match3[0];
             }
-            this.modifiedUrl = this.modifiedUrl.replace(rx3, '');
+            this.sacrificedUrl = this.sacrificedUrl.replace(rx3, '');
 
             if (result.params === "?") {
                 result.params  = null;
@@ -296,10 +324,10 @@ export const UrlNormalizer: NormalizerType  = {
             // URI
             let rx4 = new RegExp('[#/](?:.)*$', 'gi');
             let match4: RegExpExecArray | null;
-            while ((match4 = rx4.exec(this.modifiedUrl)) !== null) {
+            while ((match4 = rx4.exec(this.sacrificedUrl)) !== null) {
                 result.uri = match4[0];
             }
-            this.modifiedUrl = this.modifiedUrl.replace(rx4, '');
+            this.sacrificedUrl = this.sacrificedUrl.replace(rx4, '');
 
             if (result.uri === "/") {
                 result.uri = null;
@@ -307,6 +335,7 @@ export const UrlNormalizer: NormalizerType  = {
 
         }
 
+        this.currentStep = 6;
         return result;
 
     }

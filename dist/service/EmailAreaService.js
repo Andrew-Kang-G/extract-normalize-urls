@@ -10,7 +10,7 @@ const BasePatterns_1 = require("../pattern/BasePatterns");
 const DomainPatterns_1 = require("../pattern/DomainPatterns");
 exports.EmailAreaService = {
     parseEmail(email) {
-        let obj = {
+        let parsedEmailComponents = {
             email: null,
             removedTailOnEmail: null,
             type: null
@@ -21,49 +21,49 @@ exports.EmailAreaService = {
             if (!valid_1.default.isEmailPattern(email)) {
                 throw new Error('This is not an email pattern');
             }
-            obj.email = email;
+            parsedEmailComponents.email = email;
             if (new RegExp('@' + BasePatterns_1.BasePatterns.everything + '*' + DomainPatterns_1.DomainPatterns.ipV4, 'i').test(email)) {
-                obj.type = 'ipV4';
+                parsedEmailComponents.type = 'ipV4';
             }
             else if (new RegExp('@' + BasePatterns_1.BasePatterns.everything + '*' + DomainPatterns_1.DomainPatterns.ipV6, 'i').test(email)) {
                 //console.log('r : ' + url);
-                obj.type = 'ipV6';
+                parsedEmailComponents.type = 'ipV6';
             }
             else {
-                obj.type = 'domain';
+                parsedEmailComponents.type = 'domain';
             }
             // If no uris no params, we remove suffix in case that it is a meta character.
-            if (obj.email) {
-                if (obj.type !== 'ipV6') {
+            if (parsedEmailComponents.email) {
+                if (parsedEmailComponents.type !== 'ipV6') {
                     // removedTailOnUrl
-                    let rm_part_matches = obj.email.match(new RegExp(BasePatterns_1.BasePatterns.noLangCharNum + '+$', 'gi'));
+                    let rm_part_matches = parsedEmailComponents.email.match(new RegExp(BasePatterns_1.BasePatterns.noLangCharNum + '+$', 'gi'));
                     if (rm_part_matches) {
-                        obj.removedTailOnEmail = rm_part_matches[0];
-                        obj.email = obj.email.replace(new RegExp(BasePatterns_1.BasePatterns.noLangCharNum + '+$', 'gi'), '');
+                        parsedEmailComponents.removedTailOnEmail = rm_part_matches[0];
+                        parsedEmailComponents.email = parsedEmailComponents.email.replace(new RegExp(BasePatterns_1.BasePatterns.noLangCharNum + '+$', 'gi'), '');
                     }
                 }
                 else {
                     // removedTailOnUrl
-                    let rm_part_matches = obj.email.match(new RegExp('[^\\u005D]+$', 'gi'));
+                    let rm_part_matches = parsedEmailComponents.email.match(new RegExp('[^\\u005D]+$', 'gi'));
                     if (rm_part_matches) {
-                        obj.removedTailOnEmail = rm_part_matches[0];
-                        obj.email = obj.email.replace(new RegExp('[^\\u005D]+$', 'gi'), '');
+                        parsedEmailComponents.removedTailOnEmail = rm_part_matches[0];
+                        parsedEmailComponents.email = parsedEmailComponents.email.replace(new RegExp('[^\\u005D]+$', 'gi'), '');
                     }
                 }
                 // If no uri no params, we remove suffix in case that it is non-alphabets.
                 // The regex below means "all except for '.'". It is for extracting all root domains, so non-domain types like ip are excepted.
-                let onlyEnd = obj.email.match(new RegExp('[^.]+$', 'gi'));
+                let onlyEnd = parsedEmailComponents.email.match(new RegExp('[^.]+$', 'gi'));
                 if (onlyEnd && onlyEnd.length > 0) {
                     // this is a root domain only in English like com, ac
                     // but the situation is like com가, ac나
                     if (/^[a-zA-Z]+/.test(onlyEnd[0])) {
-                        if (/[^a-zA-Z]+$/.test(obj.email)) {
+                        if (/[^a-zA-Z]+$/.test(parsedEmailComponents.email)) {
                             // remove non alphabets
-                            const matchedEmail = obj.email.match(/[^a-zA-Z]+$/);
+                            const matchedEmail = parsedEmailComponents.email.match(/[^a-zA-Z]+$/);
                             if (matchedEmail && matchedEmail.length > 0) {
-                                obj.removedTailOnEmail = matchedEmail[0] + obj.removedTailOnEmail;
+                                parsedEmailComponents.removedTailOnEmail = matchedEmail[0] + parsedEmailComponents.removedTailOnEmail;
                             }
-                            obj.email = obj.email.replace(/[^a-zA-Z]+$/, '');
+                            parsedEmailComponents.email = parsedEmailComponents.email.replace(/[^a-zA-Z]+$/, '');
                         }
                     }
                 }
@@ -73,7 +73,7 @@ exports.EmailAreaService = {
             console.log(e);
         }
         finally {
-            return obj;
+            return parsedEmailComponents;
         }
     },
     strictTest(email) {
