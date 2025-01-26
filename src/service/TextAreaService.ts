@@ -3,29 +3,27 @@ import {SafeConditionalUrlPatternBuilder} from "../pattern/SafeConditionalUrlPat
 import {BasePatterns} from "../pattern/BasePatterns";
 import {DomainPatterns} from "../pattern/DomainPatterns";
 import Util from "../util";
-import {ParamsPatterns} from "../pattern/ParamsPatterns";
 import {EmailPatternBuilder} from "../pattern/EmailPatternBuilder";
 import {UrlAreaService} from "./UrlAreaService";
 import {EmailAreaService} from "./EmailAreaService";
+import {adjustUrisRx} from "../bo/UriMatchProcessor";
+import {sanitizeEmailPrefix} from "../bo/EmailMatchProcessor";
 
 export const TextAreaService = {
 
-    extractAllPureUrls(textStr: string): IndexContainingBaseMatch[] {
+    extractAllUrlMatchList(textStr: string): IndexContainingBaseMatch[] {
 
         if (!(textStr && typeof textStr === 'string')) {
             throw new Error('the variable textStr must be a string type and not be null.');
         }
 
-        let obj = [];
+        const urlRx = new RegExp(SafeConditionalUrlPatternBuilder.getUrl, 'gi');
 
-        let rx = new RegExp(SafeConditionalUrlPatternBuilder.getUrl, 'gi');
-
-        let matches = [];
+        let urlMatchList: IndexContainingBaseMatch[] = [];
         let match: RegExpExecArray | null;
+        while ((match = urlRx.exec(textStr)) !== null) {
 
-        while ((match = rx.exec(textStr)) !== null) {
-
-            /* SKIP DEPENDENCY */
+            /* EXCLUDED FROM MATCH LIST : Email Type */
             if (/^@/.test(match[0])) {
                 continue;
             }
@@ -33,25 +31,23 @@ export const TextAreaService = {
             let startIdx = match.index;
             let endIdx = match.index + match[0].length;
 
-            let modVal = match[0];
-            let re = UrlAreaService.parseUrl(modVal);
+            const parsedUrl = UrlAreaService.parseUrl(match[0]);
 
-            /* SKIP DEPENDENCY */
-            if (re.onlyDomain && new RegExp('^(?:\\.|[0-9]|' + BasePatterns.twoBytesNum + ')+$', 'i').test(re.onlyDomain)) {
+            /* EXCLUDED FROM MATCH LIST */
+            if (parsedUrl.onlyDomain && new RegExp('^(?:\\.|[0-9]|' + BasePatterns.twoBytesNum + ')+$', 'i').test(parsedUrl.onlyDomain)) {
                 // ipV4 is OK
-                if (!new RegExp('^' + DomainPatterns.ipV4 + '$', 'i').test(re.onlyDomain)) {
+                if (!new RegExp('^' + DomainPatterns.ipV4 + '$', 'i').test(parsedUrl.onlyDomain)) {
                     continue;
                 }
             }
 
-
-            /* this part doesn't need to be included */
-            if (re.removedTailOnUrl && re.removedTailOnUrl.length > 0) {
-                endIdx -= re.removedTailOnUrl.length;
+            /* Adjust endIdx by the length of removedTailOnUrl, if it exists */
+            if (parsedUrl.removedTailOnUrl && parsedUrl.removedTailOnUrl.length > 0) {
+                endIdx -= parsedUrl.removedTailOnUrl.length;
             }
 
-            obj.push({
-                value: re,
+            urlMatchList.push({
+                value: parsedUrl,
                 area: 'text',
                 index: {
                     start: startIdx,
@@ -60,55 +56,29 @@ export const TextAreaService = {
             } as IndexContainingBaseMatch);
         }
 
-        return obj;
+        return urlMatchList;
 
     },
 
     /*
     * [!!IMPORTANT] Should be refactored.
     * */
-    extractCertainPureUris(textStr: string, uris: Array<Array<string>>, endBoundary: boolean): IndexContainingBaseMatch[] {
+    extractCertainUriMatchList(textStr: string, uris: Array<Array<string>>, endBoundary: boolean): IndexContainingBaseMatch[] {
 
-        let uriRx = Util.Text.urisToOneRxStr(uris);
-
-
-        if (!uriRx) {
+        let urisRxStr = Util.Text.urisToOneRxStr(uris);
+        if (!urisRxStr) {
             throw new Error('the variable uris are not available');
         }
+        urisRxStr = adjustUrisRx(urisRxStr, endBoundary);
 
-        if (endBoundary) {
+        let uriMatchList: IndexContainingBaseMatch[] = [];
 
-            uriRx = '(?:\\/[^\\s]*\\/|' +
-                '(?:[0-9]|' + BasePatterns.twoBytesNum + '|' + BasePatterns.langChar + ')'
-                + '[^/\\s]*(?:[0-9]|' + BasePatterns.twoBytesNum + '|' + BasePatterns.langChar + ')'
-                + '\\/|\\/|\\b)' +
-                '(?:' + uriRx + ')' +
-
-                '(?:' + ParamsPatterns.mandatoryUrlParams + '|[\\s]|$)'
-
-            ;
-
-        } else {
-
-            uriRx = '(?:\\/[^\\s]*\\/|' +
-                '(?:[0-9]|' + BasePatterns.twoBytesNum + '|' + BasePatterns.langChar + ')'
-                + '[^/\\s]*(?:[0-9]|' + BasePatterns.twoBytesNum + '|' + BasePatterns.langChar + ')'
-                + '\\/|\\/|\\b)' +
-                '(?:' + uriRx + ')' + ParamsPatterns.optionalUrlParams;
-        }
-
-        let obj = [];
-
-        /* normal text area */
-        let rx = new RegExp(uriRx, 'gi');
+        const uriRx = new RegExp(urisRxStr, 'gi');
 
         let match : RegExpExecArray | null;
-        while ((match = rx.exec(textStr)) !== null) {
-
-            let mod_val = match[0];
-
-            obj.push({
-                value: UrlAreaService.parseUrl(mod_val),
+        while ((match = uriRx.exec(textStr)) !== null) {
+            uriMatchList.push({
+                value: UrlAreaService.parseUrl(match[0]),
                 area: 'text',
                 index: {
                     start: match.index,
@@ -116,88 +86,53 @@ export const TextAreaService = {
                 }
             } as IndexContainingBaseMatch);
         }
-
-
-        return obj;
-
+        return uriMatchList;
     },
 
-    extractAllPureEmails(textStr: string, finalPrefixSanitizer: boolean): EmailMatch[] {
+    extractAllEmailMatchList(textStr: string, finalPrefixSanitizer: boolean): EmailMatch[] {
 
         if (!(textStr && typeof textStr === 'string')) {
             throw new Error('the variable textStr must be a string type and not be null.');
         }
 
-        let obj = [];
+        let emailMatchList = [];
 
-        let rx = new RegExp(EmailPatternBuilder.getEmail, 'gi');
-
+        const emailRx = new RegExp(EmailPatternBuilder.getEmail, 'gi');
 
         let match: RegExpExecArray | null;
 
-        while ((match = rx.exec(textStr)) !== null) {
+        while ((match = emailRx.exec(textStr)) !== null) {
 
-            let mod_val = match[0];
+            let matchedEmail = match[0];
 
-            let mod_val_front = mod_val.split(/@/)[0];
+            let matchedEmailFront = matchedEmail.split(/@/)[0];
 
-            let st_idx = match.index;
-            let end_idx = match.index + match[0].length;
+            let startIdx = match.index;
+            let endIdx = match.index + match[0].length;
 
-
-            /* prefixSanitizer */
             if (finalPrefixSanitizer) {
-
-                // the 'border' is a en char that divides non-en and en areas.
-                let border = '';
-                let removedLength = 0;
-
-                let rx_left_plus_border = new RegExp('^([^a-zA-Z0-9]+)([a-zA-Z0-9])', '');
-
-                let is_mod_val_front_only_foreign_lang = true;
-
-                let match2: RegExpExecArray | null;
-                if ((match2 = rx_left_plus_border.exec(mod_val_front)) !== null) {
-
-                    is_mod_val_front_only_foreign_lang = false;
-
-                    //console.log('match2:' + match2);
-
-                    if (match2[1]) {
-                        removedLength = match2[1].length;
-                    }
-                    if (match2[2]) {
-                        border = match2[2];
-                    }
-                }
-
-                if (is_mod_val_front_only_foreign_lang === false) {
-                    mod_val = mod_val.replace(rx_left_plus_border, '');
-                    mod_val = border + mod_val;
-                }
-
-                st_idx += removedLength;
-
+                const { sanitizedEmail, removedLength } = sanitizeEmailPrefix(matchedEmailFront, matchedEmail);
+                matchedEmail = sanitizedEmail;
+                startIdx += removedLength;
             }
 
-            let re = EmailAreaService.assortEmail(mod_val);
+            let parsedEmail = EmailAreaService.parseEmail(matchedEmail);
 
-            //console.log('re : ' + re);
-            /* this part doesn't need to be included */
-            if (re.removedTailOnEmail && re.removedTailOnEmail.length > 0) {
-                end_idx -= re.removedTailOnEmail.length;
+            /* Adjust endIdx by the length of removedTailOnUrl, if it exists */
+            if (parsedEmail.removedTailOnEmail && parsedEmail.removedTailOnEmail.length > 0) {
+                endIdx -= parsedEmail.removedTailOnEmail.length;
             }
 
-            obj.push({
-                value: re,
+            emailMatchList.push({
+                value: parsedEmail,
                 area: 'text',
                 index: {
-                    start: st_idx,
-                    end: end_idx
+                    start: startIdx,
+                    end: endIdx
                 },
-                pass: EmailAreaService.strictTest(re.email)
+                pass: EmailAreaService.strictTest(parsedEmail.email)
             } as EmailMatch);
         }
-        return obj;
+        return emailMatchList;
     }
 };

@@ -9,7 +9,7 @@ const util_1 = __importDefault(require("../util"));
 const BasePatterns_1 = require("../pattern/BasePatterns");
 const DomainPatterns_1 = require("../pattern/DomainPatterns");
 exports.EmailAreaService = {
-    assortEmail(email) {
+    parseEmail(email) {
         let obj = {
             email: null,
             removedTailOnEmail: null,

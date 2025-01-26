@@ -5,7 +5,7 @@ import {BasePatterns} from "../pattern/BasePatterns";
 import {DomainPatterns} from "../pattern/DomainPatterns";
 
 export const EmailAreaService = {
-    assortEmail(email: string): EmailInfoType {
+    parseEmail(email: string): EmailInfoType {
 
         let obj : EmailInfoType = {
             email: null,

@@ -8,7 +8,6 @@ exports.XmlAreaService = {
         let matches = [];
         let match;
         while ((match = rx.exec(xmlStr)) !== null) {
-            //console.log(match[0].split(/[\t\s]+|>/)[0]);
             matches.push({
                 'value': match[0],
                 'elementName': match[0].split(/[\t\s]+|>/)[0].replace(/^</, ''),

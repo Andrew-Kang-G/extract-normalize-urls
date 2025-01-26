@@ -31,7 +31,7 @@ export const TextAreaApi = {
         }
     ): IndexContainingBaseMatch[] {
         SafeConditionalUrlPatternBuilder.setUrlPattern(noProtocolJsn);
-        return TextAreaService.extractAllPureUrls(textStr);
+        return TextAreaService.extractAllUrlMatchList(textStr);
     },
 
 
@@ -44,7 +44,7 @@ export const TextAreaApi = {
      * @return array
      */
     extractAllEmails(textStr: string, prefixSanitizer: boolean = true): EmailMatch[] {
-        return TextAreaService.extractAllPureEmails(textStr, prefixSanitizer);
+        return TextAreaService.extractAllEmailMatchList(textStr, prefixSanitizer);
     },
 
 
@@ -68,8 +68,8 @@ export const TextAreaApi = {
             throw new Error('the variable textStr must be a string type and not be null.');
         }
 
-        let uriMatchList: IndexContainingBaseMatch[] = TextAreaService.extractCertainPureUris(textStr, uris, endBoundary);
-        let urlMatchList: IndexContainingBaseMatch[] = TextAreaService.extractAllPureUrls(textStr);
+        let uriMatchList: IndexContainingBaseMatch[] = TextAreaService.extractCertainUriMatchList(textStr, uris, endBoundary);
+        let urlMatchList: IndexContainingBaseMatch[] = TextAreaService.extractAllUrlMatchList(textStr);
 
         return processAllUriMatches(uriMatchList, urlMatchList);
 

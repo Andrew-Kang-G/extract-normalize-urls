@@ -1,8 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.processUriMatchInIndexRange = processUriMatchInIndexRange;
 exports.processAllUriMatches = processAllUriMatches;
+exports.adjustUrisRx = adjustUrisRx;
 const DomainPatterns_1 = require("../pattern/DomainPatterns");
+const BasePatterns_1 = require("../pattern/BasePatterns");
+const ParamsPatterns_1 = require("../pattern/ParamsPatterns");
 function processUriMatchInIndexRange(uriMatch, urlMatchList) {
     let obj_part = {
         uriDetected: undefined,
@@ -33,4 +35,27 @@ function processUriMatchInIndexRange(uriMatch, urlMatchList) {
 }
 function processAllUriMatches(uriMatchList, urlMatchList) {
     return uriMatchList.map((uriMatch) => processUriMatchInIndexRange(uriMatch, urlMatchList));
+}
+/**
+ * Adjusts the URI regex based on the boundary condition.
+ * @param urisRxStr - The base URI regex string.
+ * @param endBoundary - Whether to apply the end boundary condition.
+ * @returns The adjusted URI regex string.
+ */
+function adjustUrisRx(urisRxStr, endBoundary) {
+    if (endBoundary) {
+        return '(?:\\/[^\\s]*\\/|' +
+            '(?:[0-9]|' + BasePatterns_1.BasePatterns.twoBytesNum + '|' + BasePatterns_1.BasePatterns.langChar + ')'
+            + '[^/\\s]*(?:[0-9]|' + BasePatterns_1.BasePatterns.twoBytesNum + '|' + BasePatterns_1.BasePatterns.langChar + ')'
+            + '\\/|\\/|\\b)' +
+            '(?:' + urisRxStr + ')' +
+            '(?:' + ParamsPatterns_1.ParamsPatterns.mandatoryUrlParams + '|[\\s]|$)';
+    }
+    else {
+        return '(?:\\/[^\\s]*\\/|' +
+            '(?:[0-9]|' + BasePatterns_1.BasePatterns.twoBytesNum + '|' + BasePatterns_1.BasePatterns.langChar + ')'
+            + '[^/\\s]*(?:[0-9]|' + BasePatterns_1.BasePatterns.twoBytesNum + '|' + BasePatterns_1.BasePatterns.langChar + ')'
+            + '\\/|\\/|\\b)' +
+            '(?:' + urisRxStr + ')' + ParamsPatterns_1.ParamsPatterns.optionalUrlParams;
+    }
 }

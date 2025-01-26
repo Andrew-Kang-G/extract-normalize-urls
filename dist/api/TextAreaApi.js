@@ -27,7 +27,7 @@ exports.TextAreaApi = {
         intranet: false
     }) {
         SafeConditionalUrlPatternBuilder_1.SafeConditionalUrlPatternBuilder.setUrlPattern(noProtocolJsn);
-        return TextAreaService_1.TextAreaService.extractAllPureUrls(textStr);
+        return TextAreaService_1.TextAreaService.extractAllUrlMatchList(textStr);
     },
     /**
      * @brief
@@ -38,7 +38,7 @@ exports.TextAreaApi = {
      * @return array
      */
     extractAllEmails(textStr, prefixSanitizer = true) {
-        return TextAreaService_1.TextAreaService.extractAllPureEmails(textStr, prefixSanitizer);
+        return TextAreaService_1.TextAreaService.extractAllEmailMatchList(textStr, prefixSanitizer);
     },
     /**
      *
@@ -58,8 +58,8 @@ exports.TextAreaApi = {
         if (!(textStr && typeof textStr === 'string')) {
             throw new Error('the variable textStr must be a string type and not be null.');
         }
-        let uriMatchList = TextAreaService_1.TextAreaService.extractCertainPureUris(textStr, uris, endBoundary);
-        let urlMatchList = TextAreaService_1.TextAreaService.extractAllPureUrls(textStr);
+        let uriMatchList = TextAreaService_1.TextAreaService.extractCertainUriMatchList(textStr, uris, endBoundary);
+        let urlMatchList = TextAreaService_1.TextAreaService.extractAllUrlMatchList(textStr);
         return (0, UriMatchProcessor_1.processAllUriMatches)(uriMatchList, urlMatchList);
     },
 };
